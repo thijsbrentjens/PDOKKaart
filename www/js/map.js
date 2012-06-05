@@ -329,21 +329,21 @@ function linkToMapOpened(permalink){
 
 	// Thijs: TODO: use OL functions for merging parameters?
 	permalink = permalink.replace("#","");
-	permalink += "?"+apiParams;
+	permalink += "?" +apiParams;
 	$("#emaillink").val(permalink);
 
 	// construct the URL, make sure the correct page is used
     var embedLink = permalink.replace("/?","/api/api.html?");
-    var embedLink = permalink.replace("/index.html?","/api/api.html?");
+    embedLink = embedLink.replace("/index.html?","/api/api.html?");
     
 	//var embedLink = permalink.("index.html")[0] + "api/api.html?" + apiParams;
 	
-	var embedHtmlIframe = "<iframe width='425' height='350' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' src='"+embedLink+"' title='PDOK Maps'></iframe><br /><small>PDOK Maps: <a href='"+permalink+"' style='color:#0000FF;text-align:left'>Grotere kaart weergeven</a></small>"
+	var embedHtmlIframe = "<iframe width='425' height='350' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' src='"+embedLink+"' title='PDOK Kaart'></iframe><br /><small>PDOK Kaart: <a href='"+permalink+"' style='color:#0000FF;text-align:left'>Grotere kaart weergeven</a></small>"
 
 	$("#embedhtmliframe").val(embedHtmlIframe);
 	
 	// <object width="400" height="400" data="helloworld.swf"></object> 
-	var embedHtmlObject = "<object width='425' height='350' codetype='text/html' data='"+embedLink+"' title='PDOK Maps'></object><br /><small>PDOK Maps: <a href='"+permalink+"' style='color:#0000FF;text-align:left'>Grotere kaart weergeven</a></small>"
+	var embedHtmlObject = "<object width='425' height='350' codetype='text/html' data='"+embedLink+"' title='PDOK Kaart'></object><br /><small>PDOK Kaart: <a href='"+permalink+"' style='color:#0000FF;text-align:left'>Grotere kaart weergeven</a></small>"
 	
 	$("#embedhtmlobject").val(embedHtmlObject);
 	return false;

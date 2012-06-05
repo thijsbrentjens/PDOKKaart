@@ -89,7 +89,7 @@ function init()
 			new OpenLayers.Control.MousePosition()
 			// , new OpenLayers.Control.PanZoomBar()
 			// , new OpenLayers.Control.Navigation()
-			// , new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
+			, new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
 			, touchNav
 		]
 	
@@ -334,7 +334,7 @@ function linkToMapOpened(permalink){
 
 	// construct the URL, make sure the correct page is used
     var embedLink = permalink.replace("/?","/api/api.html?");
-    var embedLink = permalink.replace("/index.html?","/api/api.html?");
+    embedLink = embedLink.replace("/index.html?","/api/api.html?");
     
 	//var embedLink = permalink.("index.html")[0] + "api/api.html?" + apiParams;
 	

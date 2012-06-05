@@ -89,7 +89,7 @@ function init()
 			new OpenLayers.Control.MousePosition()
 			// , new OpenLayers.Control.PanZoomBar()
 			// , new OpenLayers.Control.Navigation()
-			, new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
+			// , new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
 			, touchNav
 		]
 	
@@ -327,6 +327,13 @@ function linkToMapOpened(permalink){
 	var apiParams = "&loc=" + mapPDOKKaart.getCenter().lon + "," +mapPDOKKaart.getCenter().lat;
 	apiParams += "&zl=" + mapPDOKKaart.getZoom();
 
+	if (markers.features.length == 1) {
+		// TODO: always add the marker? or only if a checkbox is checked?
+		// markers are points, so just add the x and y
+		// by default, use mt = 1
+		var m = markers.features[0];
+		apiParams+="&mloc="+m.geometry.x+","+m.geometry.y+"&mt=2"
+	}
 	// Thijs: TODO: use OL functions for merging parameters?
 	permalink = permalink.replace("#","");
 	permalink += "?" +apiParams;

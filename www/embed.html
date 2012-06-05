@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>PDOK Maps - Proof of Concept</title>        
+        <link rel="stylesheet" href="css/main.css" type="text/css" />
+        <link rel="stylesheet" href="js/theme/default/style.css" type="text/css" />
+        <script src="js/OpenLayers.pdok.js"></script>
+        <script src="js/proj4js-compressed.js"></script>  
+        <script src="js/jquery.js"></script>
+        <script src="js/map.js"></script>
+    </head>
+    <body>
+    	<div id="map" class="embedded"></div>
+    	<div id="search" class="embedded">
+			<form id="searchForm" name="searchForm">				
+				Zoek een locatie: <input id="searchLocation" type="text" value="" name="searchLocation" title="Postcode of plaatsnaam" size="15">
+				<button type="submit" class="filterbutton" onclick="searchLocationChanged();return false;">Zoek</button>
+			</form>
+    	</div>
+    	<div id="searchResults" class="embedded"></div>
+		<script>
+			var embedded = true;
+			init(embedded);
+		</script>
+    </body>
+</html>

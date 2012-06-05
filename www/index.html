@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>PDOK Kaart - Proof of Concept</title>        
+        <link rel="stylesheet" href="css/main.css" type="text/css" />
+        <!-- link rel="stylesheet" href="js/theme/default/style.css" type="text/css" / -->
+        <link rel="stylesheet" href="api/style.css" type="text/css" />
+        <script src="js/OpenLayers.pdok.js"></script> <!-- was: js/OpenLayers.pdok.js, voor Geozet -->
+        <script src="api/lusc-api.js"></script>
+        <script src="js/proj4js-compressed.js"></script>  
+        <script src="js/jquery.js"></script>
+        <script src="js/map.js"></script>
+    </head>
+    <body>
+    <div id="container">
+		<div id="topbar">
+		    <h1 id="title">PDOK Kaart - Proof of Concept</h1>
+			<div id="search">
+				<form id="searchForm" name="searchForm">				
+					Zoek een locatie: <input id="searchLocation" type="text" value="" name="searchLocation" title="Postcode of plaatsnaam" size="30">
+					<button type="submit" class="filterbutton" onclick="searchLocationChanged();return false;">Zoek</button>
+				</form>
+			</div>
+	    </div>
+	    <div id="content">
+		    <div id="leftcolumn">
+				<div id="mapfunctions">
+					<h3 id="permalinktitle"><a href="#" onclick="$('#createlink').toggle();linkToMapOpened(this.href);return false;" id="permalink">Link naar kaart</a></h3>
+					<div id="createlink">
+						<span id="closecreatelink" onclick="$('#createlink').hide()"><a href="#" onclick="return false;">X</a></span>
+						Directe link:<br/><input type="text" value="" id="emaillink" name="emaillink" size="30"/><br/>
+						Embed HTML iframe:<br/><input type="text" value="" id="embedhtmliframe" name="embedhtmliframe" size="30"/><br/>
+						Embed HTML Object tag:<br/><input type="text" value="" id="embedhtmlobject" name="embedhtmlobject" size="30"/><br/>
+						Opties: inclusief zijpanel, inclusief zoeken op locatie.
+					</div>
+					<h3 id="drawlocationtitle"><a href="#" onclick="return false;">Locatie prikken</a></h3>
+					<div id="drawlocation">
+					
+					</div>
+				</div>
+				<p id="searchResults">
+				</p>
+		    </div>
+		    <div id="map" class="functional"></div>
+	    </div>
+    </div>
+	<script>
+		init();
+	</script>
+    </body>
+</html>

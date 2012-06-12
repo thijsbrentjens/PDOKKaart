@@ -1,4 +1,4 @@
-var mapPDOKKaart, markers, activeFeature;
+var mapPDOKKaart, markers, activeFeature, dragControl;
 var pdokachtergrondkaart;
 
 // TODO: make config object, with anonymous function
@@ -84,13 +84,18 @@ function init()
                     enableKinetic: true
                 }
             })
-            
+		
+		dragControl = new OpenLayers.Control.DragFeature(markers);
+	
 		controls = [
 			new OpenLayers.Control.MousePosition()
+			, dragControl
 			// , new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
 			, touchNav
 		]
-	
+		
+		
+		
 		// for the future upcoming searchresults
 		// attach click to the li-suggestions (if available)
 		// delegate..
@@ -143,10 +148,22 @@ function init()
 		// only set the map center if not already done by lusc api
 		if (!mapPDOKKaart.getCenter()) {
 		 	mapPDOKKaart.setCenter(new OpenLayers.LonLat(155000,463000), 3);
-		}
+		}	
+
     }
 }
 
+function startDrag () {
+	console.log("start drag")
+}
+
+function doDrag () {
+	console.log("do drag")
+}
+
+function endDrag () {
+	console.log("end drag")
+}
 
 /****
     * For Proof of Concept only use some simple functions to perform searches. For advanced / full functionality: see Geozet and include / build on (Geo)Ext
@@ -474,16 +491,35 @@ function markersPopupText(feature, full) {
 		description += "Provincie: " + ft.attributes.provincie + "\n";
 	    ft.attributes.description = description;
     }
-    text += "<div id='popupcontent_"+ft.id+"'><h4 class='"+className+"'><input type='text' value='"+ft.attributes.title + "' id='markertitle' name='markertitle' size='30' onchange='updateMarkerTitle(this.value, \""+ ft.id + "\")'/></h4>";
+    text += "<div id='popupcontent_"+ft.id+"'><h4 class='"+className+"'><input type='text' readonly value='"+ft.attributes.title + "' id='markertitle' name='markertitle' size='30' onchange='updateMarkerTitle(this.value, \""+ ft.id + "\")'/></h4>";
     // if not full, then only hide the markertext?
 
     if(full){
 	    // and if the feature has the attributes..
-	    text+="<div><textarea id='markertext' name='markertext' cols='40' rows='5' onchange='updateMarkerText(this.value, \""+ ft.id + "\")'>";
-	    text += ft.attributes.description + "</textarea></div>";
+	    text+="<div><textarea id='markertext' name='markertext' cols='40' rows='5' readonly onchange='updateMarkerText(this.value, \""+ ft.id + "\")'>";
+	    text += ft.attributes.description + "</textarea><a href='#' onclick='startFeatureEdit("+ ft.id +")'>Bewerken</a> - <a href='#' onclick='stopFeatureEdit("+ ft.id +")'>Klaar met bewerken</a></div>";
     }
+    // TODO: function: edit text fields and / or move feature
+    // if ready editing, then close dragging
     text+="</div>";
 	return text;
+}
+
+function startFeatureEdit(ft_id) {
+	// TODO: change style
+	$("#markertitle").attr("readonly","");
+	$("#markertext").attr("readonly","");
+	dragControl.activate();
+	// readonly='readonly
+	// TODO: add stopFeatureEdit
+}
+
+function stopFeatureEdit(ft_id) {
+	// change style
+	$("#markertitle").attr('readonly', 'readonly');
+	$("#markertext").attr('readonly', 'readonly');
+	dragControl.deactivate();	
+	// readonly='readonly'
 }
 
 function removePopups(layer) {

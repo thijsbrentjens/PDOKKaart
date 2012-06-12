@@ -34,7 +34,7 @@
 						Embed HTML iframe:<br/><input type="text" value="" id="embedhtmliframe" name="embedhtmliframe" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed HTML Object tag:<br/><input type="text" value="" id="embedhtmlobject" name="embedhtmlobject" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed losse link:<br/><input type="text" value="" id="embedlink" name="embedlink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
-						Geselecteerde marker tonen op kaart: <input type="checkbox" value="checked" id="showmarker"/><br/>
+						Geselecteerde marker tonen op kaart: <input type="checkbox" checked="checked" id="showmarker" name="showmarker"/><br/>
 						Afmetingen kaart:<br/>
 						<input type="radio" value="small" name="mapsizechoice" checked="checked" onchange="linkToMapOpened(document.location.href)"/> klein <input type="radio" value="medium" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> middel  <input type="radio" value="large" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> groot <br/>
 					</div>

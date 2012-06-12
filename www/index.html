@@ -28,10 +28,15 @@
 					<h3 id="permalinktitle"><a href="#" onclick="$('#createlink').toggle();linkToMapOpened(this.href);return false;" id="permalink">Link naar kaart</a></h3>
 					<div id="createlink">
 						<span id="closecreatelink" onclick="$('#createlink').hide()"><a href="#" onclick="return false;">X</a></span>
-						Directe link:<br/><input type="text" value="" id="emaillink" name="emaillink" size="30"/><br/>
-						Embed HTML iframe:<br/><input type="text" value="" id="embedhtmliframe" name="embedhtmliframe" size="30"/><br/>
-						Embed HTML Object tag:<br/><input type="text" value="" id="embedhtmlobject" name="embedhtmlobject" size="30"/><br/>
-						Opties: inclusief zijpanel, inclusief zoeken op locatie.
+						Directe link deze kaart:<br/><input type="text" value="" id="emaillink" name="emaillink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
+						Embed HTML iframe:<br/><input type="text" value="" id="embedhtmliframe" name="embedhtmliframe" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
+						Embed HTML Object tag:<br/><input type="text" value="" id="embedhtmlobject" name="embedhtmlobject" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
+						Embed losse link:<br/><input type="text" value="" id="embedlink" name="embedlink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
+						<input type="radio" value="small" name="mapsizechoice" checked="checked" onchange="linkToMapOpened(document.location.href)"/> klein <input type="radio" value="medium" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> middel  <input type="radio" value="large" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> groot <br/>
+						<!-- <p>
+						Titel van de info-ballon:<br/><input type="text" value="" id="markertitle_depr" name="markertitle_depr" size="30" onchange="updateMarkerTitle(this.value)"/><br/>
+						Tekst van de info-ballon:<br/><textarea id="markertext_depr" name="markertext_depr" cols="40" rows="5" onchange="updateMarkerText(this.value)"></textarea><br/>
+						</p> -->
 					</div>
 					<h3 id="drawlocationtitle"><a href="#" onclick="return false;">Locatie prikken</a></h3>
 					<div id="drawlocation">

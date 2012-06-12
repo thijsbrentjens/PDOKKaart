@@ -1,4 +1,4 @@
-var mapPDOKKaart, markers;
+var mapPDOKKaart, markers, activeFeature;
 var pdokachtergrondkaart;
 
 // TODO: make config object, with anonymous function
@@ -191,7 +191,7 @@ function handleGeocodeResponse(req, returnCoords){
 		// minx,miny,maxx,maxy are used to calcultate a bbox of the geocoding results
 		// initializes these with the max/min values of the extent of the map, so swap the left /right and bottomo/top of the maxExtent
 		// i.e.: the calculate minx will allways be smaller than the right-border of the map;
-		// TODO: use the map's restricted Extent, so change to Lucs API
+		// TODO: use the map's restricted Extent, so request a change to Lucs API
 		/// For now: just values
 		maxEx = new OpenLayers.Bounds(-285401.92, 22598.08, 595401.92, 903401.92);
 		var minx = maxEx.right;
@@ -323,36 +323,51 @@ function linkToMapOpened(permalink){
 	marker = x,y
 	<pm>	
 	*/
-	// add the parameters, serialize them just quick and dirty now
+	// add the parameters, serialize them just explicitly now.
 	var apiParams = "&loc=" + mapPDOKKaart.getCenter().lon + "," +mapPDOKKaart.getCenter().lat;
 	apiParams += "&zl=" + mapPDOKKaart.getZoom();
 
-	if (markers.features.length == 1) {
-		// TODO: always add the marker? or only if a checkbox is checked?
-		// markers are points, so just add the x and y
-		// by default, use mt = 1
-		var m = markers.features[0];
-		apiParams+="&mloc="+m.geometry.x+","+m.geometry.y+"&mt=2"
+	// Only add a marker for the last active feature
+	
+	// TODO: always add the marker? or only if a checkbox is checked?
+	// TODO: check if activeFeature still exists
+	if (activeFeature && markers.features.length > 0) {
+		apiParams+="&mloc="+activeFeature.geometry.x+","+activeFeature.geometry.y+"&mt=2"+"&titel="+encodeURIComponent(activeFeature.attributes.title)+"&tekst="+encodeURIComponent(activeFeature.attributes.description);
 	}
-	// Thijs: TODO: use OL functions for merging parameters?
-	permalink = permalink.replace("#","");
+
+	permalink = permalink.replace("#","?");
+	permalink = permalink.split("?")[0];
 	permalink += "?" +apiParams;
 	$("#emaillink").val(permalink);
 
+	// size of the map
+	var mapsize = $('input:radio[name=mapsizechoice]:checked').val();
+	var mapW = '900';
+	var mapH= '550';
+	if (mapsize =="small") {
+		mapW = '425';
+		mapH= '350';
+	} else if (mapsize =="medium") {
+		mapW = '650';
+		mapH= '450';	
+	}
 	// construct the URL, make sure the correct page is used
     var embedLink = permalink.replace("/?","/api/api.html?");
     embedLink = embedLink.replace("/index.html?","/api/api.html?");
     
 	//var embedLink = permalink.("index.html")[0] + "api/api.html?" + apiParams;
 	
-	var embedHtmlIframe = "<iframe width='425' height='350' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' src='"+embedLink+"' title='PDOK Kaart'></iframe><br /><small>PDOK Kaart: <a href='"+permalink+"' style='color:#0000FF;text-align:left'>Grotere kaart weergeven</a></small>"
+	var embedHtmlIframe = "<iframe width='"+mapW+"' height='"+mapH+"' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' src='"+embedLink+"' title='PDOK Kaart'></iframe><br /><small>PDOK Kaart: <a href='"+permalink+"' style='color:#0000FF;text-align:left'>Grotere kaart weergeven</a></small>"
 
 	$("#embedhtmliframe").val(embedHtmlIframe);
 	
 	// <object width="400" height="400" data="helloworld.swf"></object> 
-	var embedHtmlObject = "<object width='425' height='350' codetype='text/html' data='"+embedLink+"' title='PDOK Kaart'></object><br /><small>PDOK Kaart: <a href='"+permalink+"' style='color:#0000FF;text-align:left'>Grotere kaart weergeven</a></small>"
+	var embedHtmlObject = "<object width='"+mapW+"' height='"+mapH+"' codetype='text/html' data='"+embedLink+"' title='PDOK Kaart'></object><br /><small>PDOK Kaart: <a href='"+permalink+"' style='color:#0000FF;text-align:left'>Grotere kaart weergeven</a></small>"
 	
 	$("#embedhtmlobject").val(embedHtmlObject);
+	
+	$("#embedlink").val(embedLink);
+
 	return false;
 }
 
@@ -362,7 +377,7 @@ function onPopupClose(evt, feature) {
 		mapPDOKKaart.removePopup(feature.popup);
 		feature.popup.destroy();
 		feature.popup = null;
-	    	feature.renderIntent='default';
+	    feature.renderIntent='default';
 		feature.layer.drawFeature(feature);
 		// mapPDOKKaart.panTo(previousCenter);
 	}
@@ -383,6 +398,10 @@ function onFeatureSelect(feature, full, text) {
 		popupSize = new OpenLayers.Size(200, 60);
 		border = 1;
 	}
+	// TODO: thijs, just for demo: add text to marker
+	// $("#markertitle").val(feature.attributes.title);
+	// $("#markertext").val(feature.attributes.description);
+	
 	popup = new OpenLayers.Popup(feature.attributes.title, 
 		             feature.geometry.getBounds().getCenterLonLat(),
 		             popupSize,
@@ -409,17 +428,24 @@ function markersPopupText(feature, full) {
 	if (full) {
 		className="popupTitleFull";
 	}
-
+	// TODO: make it a form that can be edited? E.g. a textarea for the content
     var ft = feature;
-    text += "<div id='popupcontent_"+ft.id+"'><h4 class='"+className+"'>"+ft.attributes.title + "</h4>";
+    text += "<div id='popupcontent_"+ft.id+"'><h4 class='"+className+"'><input type='text' value='"+ft.attributes.title + "' id='markertitle' name='markertitle' size='30' onchange='updateMarkerTitle(this.value, \""+ ft.id + "\")'/></h4>";
     if(full){
-	    text += "<div>Adres:<br/>" ;
-	    text += ft.attributes.adres;
-	    text += "<br/>" + ft.attributes.postcode + " " + ft.attributes.plaats +"<br/>";
-	    text += "Gemeente: " + ft.attributes.gemeente + "<br/>";
-	    text += "Provincie: " + ft.attributes.provincie + "<br/>";
+	    // and if the feature has the attributes..
+	    text+="<div><textarea id='markertext' name='markertext' cols='40' rows='5' onchange='updateMarkerText(this.value, \""+ ft.id + "\")'>";
+	    var description = "";
+	    if (ft.attributes.description == undefined && ft.attributes.adres) {
+			description += "Adres:\n" ;
+			description += ft.attributes.adres;
+			description += "\n" + ft.attributes.postcode + " " + ft.attributes.plaats +"\n";
+			description += "Gemeente: " + ft.attributes.gemeente + "\n";
+			description += "Provincie: " + ft.attributes.provincie + "\n";
+		    ft.attributes.description = description;
+	    }
+	    text += ft.attributes.description + "</textarea></div>";
     }
-    text+="</div></div>";
+    text+="</div>";
 	return text;
 }
 
@@ -433,6 +459,7 @@ function removePopups(layer) {
 			ft.layer.drawFeature(ft);
 			ft.popup.destroy();
 			ft.popup = null;
+			activeFeature = null;
 		}
 	}
 }
@@ -474,3 +501,14 @@ function addFormEnhancements(){
 	});
 }
 
+
+function updateMarkerTitle(markerTitle, ft_id) {
+	var ft = markers.getFeatureById(ft_id);
+	ft.attributes.title = markerTitle;
+}
+
+
+function updateMarkerText(markerText, ft_id) {
+	var ft = markers.getFeatureById(ft_id);
+	ft.attributes.description = markerText;
+}

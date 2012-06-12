@@ -108,6 +108,7 @@ function init()
 				// activate the popup?
 				var ft = markers.getFeatureById(ft_id);
 			    onFeatureSelect(ft, true, markersPopupText(ft, true)); // full=true
+			    ft.popupFix = true;
 				// $('#geozetStart').remove();
 			}
 			else {
@@ -116,8 +117,9 @@ function init()
 			return false;
 		});
 		
+		
 		$('#searchResults').delegate('li/a','mouseover', function (evt) {
-			activeFeature = null;
+			// activeFeature = null;
 			var hash = $("span.hash", this).text();
 			var x = $("span.x", this).text();
 			var y = $("span.y", this).text();
@@ -133,12 +135,9 @@ function init()
 			return false;
 		});
 		$('#searchResults').delegate('li/a','mouseout', function (evt) {
-			if (activeFeature.popupFix != true) {
-				removePopups(markers);
-			}
+			// removePopups(markers);			
 			return false;
 		});
-		
 		
 		mapPDOKKaart.addControls(controls);
 		// only set the map center if not already done by lusc api
@@ -302,7 +301,7 @@ function handleGeocodeResponse(req, returnCoords){
 					newId = newFt.id;
 					features.push(newFt);
                 }
-				var gazHtml = '<li><a href="#">('+(i+1) + ") " + suggestion+' <span class="hash">'+hash+'</span>'+' <span class="x">'+x+'</span> <span class="y">'+y+'</span> <span class="z">'+z+'</span> <span class="ft_id">'+newId+'</span></a></li>';
+				var gazHtml = '<li><a href="#">('+(i+1) + ") " + suggestion+' <span class="hash">'+hash+'</span>'+' <span class="x">'+x+'</span> <span class="y">'+y+'</span> <span class="z">'+z+'</span> <span class="ft_id" id="searchresult_'+newId.split('.')[2]+'">'+newId+'</span></a></li>';
                 $("ul.geozetSuggestions").append(gazHtml);
 
                 // set (calculated) height for the result div
@@ -359,7 +358,7 @@ function linkToMapOpened(permalink){
 	
 	// TODO: always add the marker? or only if a checkbox is checked?
 	// TODO: check if activeFeature still exists
-	if (activeFeature && markers.features.length > 0) {
+	if (activeFeature && markers.features.length > 0 && $("#showmarker").is(':checked')) {
 		apiParams+="&mloc="+activeFeature.geometry.x+","+activeFeature.geometry.y+"&mt=2"+"&titel="+encodeURIComponent(activeFeature.attributes.title)+"&tekst="+encodeURIComponent(activeFeature.attributes.description);
 	}
 
@@ -409,12 +408,10 @@ function onPopupClose(evt, feature) {
 		feature.layer.drawFeature(feature);
 		// mapPDOKKaart.panTo(previousCenter);
 	}
-	activeFeature = null;
 }
 
 function onFeatureSelect(feature, full, text) {
 	removePopups(feature.layer);
-	activeFeature = feature;
 	// var text = '';
 	var popupSize;
 	var className="";
@@ -423,14 +420,21 @@ function onFeatureSelect(feature, full, text) {
 	if (full) {
 		popupSize = new OpenLayers.Size(200, 120);
 		popupCloseButton = true;
-        feature.popupFix = true;	
+        feature.popupFix = true;
+		activeFeature = feature;
+		// remove highlights
+		$(".ft_id").each(
+			function () {
+				$(this).parent().parent().removeClass("selected");
+			}
+		);
+		// highlight the selected feature in the list	
+		$("#searchresult_"+feature.id.split('.')[2]).parent().parent().addClass("selected");
+	
 	} else {
 		popupSize = new OpenLayers.Size(200, 60);
 		border = 1;
 	}
-	// TODO: thijs, just for demo: add text to marker
-	// $("#markertitle").val(feature.attributes.title);
-	// $("#markertext").val(feature.attributes.description);
 	
 	popup = new OpenLayers.Popup(feature.attributes.title, 
 		             feature.geometry.getBounds().getCenterLonLat(),
@@ -492,7 +496,6 @@ function removePopups(layer) {
 			ft.layer.drawFeature(ft);
 			ft.popup.destroy();
 			ft.popup = null;
-			activeFeature = null;
 		}
 	}
 }

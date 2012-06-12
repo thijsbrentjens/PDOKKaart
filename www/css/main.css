@@ -93,7 +93,7 @@ body
 
 #leftcolumn li {
     font-size: 0.9em;
-    padding: 1px;
+    padding: 1px 1px 1px 25px;
     /* border-bottom: solid 1px grey; */
 }
 
@@ -172,6 +172,10 @@ li
 }
 .geozetSuggestions li a span{
 	display: none;
+}
+
+.geozetSuggestions li.selected{
+	background: url(../js/img/marker.png) no-repeat 0px;
 }
 
 #permalinktitle {

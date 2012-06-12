@@ -87,8 +87,6 @@ function init()
             
 		controls = [
 			new OpenLayers.Control.MousePosition()
-			// , new OpenLayers.Control.PanZoomBar()
-			// , new OpenLayers.Control.Navigation()
 			// , new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
 			, touchNav
 		]
@@ -103,18 +101,44 @@ function init()
 			var x = $("span.x", this).text();
 			var y = $("span.y", this).text();
 			var z = $("span.z", this).text();
+			var ft_id = $("span.ft_id", this).text();
 			if(x && y){
 				mapPDOKKaart.setCenter(new OpenLayers.LonLat(x, y), z);
-				// TODO: remove all markers, only add this feature
-				
+				// TODO: remove all markers, only add this feature?
+				// activate the popup?
+				var ft = markers.getFeatureById(ft_id);
+			    onFeatureSelect(ft, true, markersPopupText(ft, true)); // full=true
 				// $('#geozetStart').remove();
-				// document.location.hash = hash;
 			}
 			else {
 				alert("fout met coordinaten");
 			}
 			return false;
 		});
+		
+		$('#searchResults').delegate('li/a','mouseover', function (evt) {
+			activeFeature = null;
+			var hash = $("span.hash", this).text();
+			var x = $("span.x", this).text();
+			var y = $("span.y", this).text();
+			var z = $("span.z", this).text();
+			var ft_id = $("span.ft_id", this).text();
+			if(x && y){
+				var ft = markers.getFeatureById(ft_id);
+			    onFeatureSelect(ft, false, markersPopupText(ft, false)); // full=true
+			}
+			else {
+				alert("fout met coordinaten");
+			}
+			return false;
+		});
+		$('#searchResults').delegate('li/a','mouseout', function (evt) {
+			if (activeFeature.popupFix != true) {
+				removePopups(markers);
+			}
+			return false;
+		});
+		
 		
 		mapPDOKKaart.addControls(controls);
 		// only set the map center if not already done by lusc api
@@ -170,6 +194,7 @@ function searchLocationChanged() {
 
 function handleGeocodeResponse(req, returnCoords){
     markers.destroyFeatures();
+    removePopups(markers);
     $('#searchResults').html('').show();
     
     var responseText = req.responseText;
@@ -202,7 +227,7 @@ function handleGeocodeResponse(req, returnCoords){
 		var features = [];
         // > 0 hit show suggestions        
         if(hits>0){
-            $('#searchResults').html('<span class="searchedFor">Gezocht op: "'+jQuery("#searchLocation").val()+'"</span><h3 class="geozetSuggestions">Zoekresultaten:</h3><a href="#" onclick="$(\'#searchResults\').hide();return false;">Sluiten</a><ul class="geozetSuggestions"></ul>');
+            $('#searchResults').html('<span class="searchedFor">Gezocht op: "'+jQuery("#searchLocation").val()+'"</span><h3>Zoekresultaten <a href="#" onclick="$(\'.geozetSuggestions\').toggle();return false;">Tonen/Verbergen</a></h3><ul class="geozetSuggestions"></ul>');
         }
         for (i=0;i<hits;i++){
             var suggestion='';
@@ -259,24 +284,27 @@ function handleGeocodeResponse(req, returnCoords){
                 hash = "/provincie/"+encodeURIComponent(prov)+hash;
             }
             if(hits>0){
+                // Thijs: added calculation for bbox
+                // only calulate if a geom is provided
                 // hack to be able to handle results without geom
                 var x = geom?geom.x:150000;
                 var y = geom?geom.y:450000;
                 var z = geom?gazetteerConfig.gazetteer.zoomScale[zoom]:gazetteerConfig.gazetteer.zoomScale['provincie'];
-				var gazHtml = '<li><a href="#">('+(i+1) + ") " + suggestion+' <span class="hash">'+hash+'</span>'+' <span class="x">'+x+'</span> <span class="y">'+y+'</span> <span class="z">'+z+'</span></a></li>';
-            
-                $("ul.geozetSuggestions").append(gazHtml);
-                // Thijs: added calculation for bbox
-                // only calulate if a geom is provided
+                var newId = -1;
                 if (geom) {
                 	minx = Math.min(minx, x);
                 	miny = Math.min(miny, y);
                 	maxx = Math.max(maxx, x);
                 	maxy = Math.max(maxy, y);
                 	minzoom = Math.min(minzoom, gazetteerConfig.gazetteer.zoomScale[zoom]);
-					features.push(new OpenLayers.Feature.Vector( new OpenLayers.Geometry.Point(x, y), {"title": suggestion, "postcode": postcode, "adres": adres, "plaats": plaats, "gemeente": gemeente, "provincie": prov},
-							{externalGraphic: 'js/img/marker.png', graphicHeight: 26, graphicWidth: 20}));
-                }                
+					var newFt = new OpenLayers.Feature.Vector( new OpenLayers.Geometry.Point(x, y), {"title": suggestion, "postcode": postcode, "adres": adres, "plaats": plaats, "gemeente": gemeente, "provincie": prov},
+							{externalGraphic: 'js/img/marker.png', graphicHeight: 26, graphicWidth: 20});
+					newId = newFt.id;
+					features.push(newFt);
+                }
+				var gazHtml = '<li><a href="#">('+(i+1) + ") " + suggestion+' <span class="hash">'+hash+'</span>'+' <span class="x">'+x+'</span> <span class="y">'+y+'</span> <span class="z">'+z+'</span> <span class="ft_id">'+newId+'</span></a></li>';
+                $("ul.geozetSuggestions").append(gazHtml);
+
                 // set (calculated) height for the result div
                 /* var height = Math.max(Ext.get('geozetAside').getHeight(), Ext.get('geozetArticle').getHeight());
                 Ext.get(this.contentWrapperId).setHeight(height); */
@@ -381,6 +409,7 @@ function onPopupClose(evt, feature) {
 		feature.layer.drawFeature(feature);
 		// mapPDOKKaart.panTo(previousCenter);
 	}
+	activeFeature = null
 }
 
 function onFeatureSelect(feature, full, text) {
@@ -393,7 +422,8 @@ function onFeatureSelect(feature, full, text) {
 	var border = 2;
 	if (full) {
 		popupSize = new OpenLayers.Size(200, 120);
-		popupCloseButton = true;		
+		popupCloseButton = true;
+        feature.popupFix = true;	
 	} else {
 		popupSize = new OpenLayers.Size(200, 60);
 		border = 1;
@@ -428,21 +458,24 @@ function markersPopupText(feature, full) {
 	if (full) {
 		className="popupTitleFull";
 	}
-	// TODO: make it a form that can be edited? E.g. a textarea for the content
+	// Thijs: for the marker, add a title and description property that can be edited
+	// these properties are added as marker parameters
     var ft = feature;
+    if (ft.attributes.description==undefined && (ft.attributes.adres || ft.attributes.plaats || ft.attributes.gemeente || ft.attributes.provincie)) {
+	    var description = "";
+		description += "Adres:\n";
+		description += ft.attributes.adres;
+		description += "\n" + ft.attributes.postcode + " " + ft.attributes.plaats +"\n";
+		description += "Gemeente: " + ft.attributes.gemeente + "\n";
+		description += "Provincie: " + ft.attributes.provincie + "\n";
+	    ft.attributes.description = description;
+    }
     text += "<div id='popupcontent_"+ft.id+"'><h4 class='"+className+"'><input type='text' value='"+ft.attributes.title + "' id='markertitle' name='markertitle' size='30' onchange='updateMarkerTitle(this.value, \""+ ft.id + "\")'/></h4>";
+    // if not full, then only hide the markertext?
+
     if(full){
 	    // and if the feature has the attributes..
 	    text+="<div><textarea id='markertext' name='markertext' cols='40' rows='5' onchange='updateMarkerText(this.value, \""+ ft.id + "\")'>";
-	    var description = "";
-	    if (ft.attributes.description == undefined && ft.attributes.adres) {
-			description += "Adres:\n" ;
-			description += ft.attributes.adres;
-			description += "\n" + ft.attributes.postcode + " " + ft.attributes.plaats +"\n";
-			description += "Gemeente: " + ft.attributes.gemeente + "\n";
-			description += "Provincie: " + ft.attributes.provincie + "\n";
-		    ft.attributes.description = description;
-	    }
 	    text += ft.attributes.description + "</textarea></div>";
     }
     text+="</div>";

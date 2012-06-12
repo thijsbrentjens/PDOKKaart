@@ -2,8 +2,8 @@
 body
 {
     background-color: #FFFFFF;
-	font-family: 'Cantarell', Arial, sans-serif;
-	font-size: 1.0em;
+	font-family: 'Cantarell', Verdana, Arial, sans-serif;
+	font-size: 0.9em;
 	text-align: left; /* */ /* workaround to center a div in IE: http://www.maxdesign.com.au/presentation/center/ */
     margin: 0;
     padding: 0;

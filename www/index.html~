@@ -3,6 +3,8 @@
     <head>
         <title>PDOK Kaart - Proof of Concept</title>        
         <link rel="stylesheet" href="css/main.css" type="text/css" />
+		<!-- add Cantarell fonts, for CSS3 -->
+		<link href='http://fonts.googleapis.com/css?family=Cantarell:700italic,700,400italic,400' rel='stylesheet' type='text/css'>
         <!-- link rel="stylesheet" href="js/theme/default/style.css" type="text/css" / -->
         <link rel="stylesheet" href="api/style.css" type="text/css" />
         <script src="js/OpenLayers.pdok.js"></script> <!-- was: js/OpenLayers.pdok.js, voor Geozet -->
@@ -27,16 +29,12 @@
 				<div id="mapfunctions">
 					<h3 id="permalinktitle"><a href="#" onclick="$('#createlink').toggle();linkToMapOpened(this.href);return false;" id="permalink">Link naar kaart</a></h3>
 					<div id="createlink">
-						<span id="closecreatelink" onclick="$('#createlink').hide()"><a href="#" onclick="return false;">X</a></span>
+						<span id="closecreatelink" onclick="$('#createlink').hide()"><a href="#" onclick="return false;"><img src="/js/theme/default/img/close.gif" alt="Sluiten" title="Sluiten"/></a></span>
 						Directe link deze kaart:<br/><input type="text" value="" id="emaillink" name="emaillink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed HTML iframe:<br/><input type="text" value="" id="embedhtmliframe" name="embedhtmliframe" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed HTML Object tag:<br/><input type="text" value="" id="embedhtmlobject" name="embedhtmlobject" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed losse link:<br/><input type="text" value="" id="embedlink" name="embedlink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						<input type="radio" value="small" name="mapsizechoice" checked="checked" onchange="linkToMapOpened(document.location.href)"/> klein <input type="radio" value="medium" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> middel  <input type="radio" value="large" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> groot <br/>
-						<!-- <p>
-						Titel van de info-ballon:<br/><input type="text" value="" id="markertitle_depr" name="markertitle_depr" size="30" onchange="updateMarkerTitle(this.value)"/><br/>
-						Tekst van de info-ballon:<br/><textarea id="markertext_depr" name="markertext_depr" cols="40" rows="5" onchange="updateMarkerText(this.value)"></textarea><br/>
-						</p> -->
 					</div>
 					<h3 id="drawlocationtitle"><a href="#" onclick="return false;">Locatie prikken</a></h3>
 					<div id="drawlocation">

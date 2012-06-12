@@ -3,6 +3,8 @@
     <head>
         <title>PDOK Kaart - Proof of Concept</title>        
         <link rel="stylesheet" href="css/main.css" type="text/css" />
+		<!-- add Cantarell fonts, for CSS3 -->
+		<link href='http://fonts.googleapis.com/css?family=Cantarell:700italic,700,400italic,400' rel='stylesheet' type='text/css'>
         <!-- link rel="stylesheet" href="js/theme/default/style.css" type="text/css" / -->
         <link rel="stylesheet" href="api/style.css" type="text/css" />
         <script src="js/OpenLayers.pdok.js"></script> <!-- was: js/OpenLayers.pdok.js, voor Geozet -->
@@ -27,7 +29,7 @@
 				<div id="mapfunctions">
 					<h3 id="permalinktitle"><a href="#" onclick="$('#createlink').toggle();linkToMapOpened(this.href);return false;" id="permalink">Link naar kaart</a></h3>
 					<div id="createlink">
-						<span id="closecreatelink" onclick="$('#createlink').hide()"><a href="#" onclick="return false;">X</a></span>
+						<span id="closecreatelink" onclick="$('#createlink').hide()"><a href="#" onclick="return false;"><img src="js/theme/default/img/close.gif" alt="Sluiten" title="Sluiten"/></a></span>
 						Directe link deze kaart:<br/><input type="text" value="" id="emaillink" name="emaillink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed HTML iframe:<br/><input type="text" value="" id="embedhtmliframe" name="embedhtmliframe" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed HTML Object tag:<br/><input type="text" value="" id="embedhtmlobject" name="embedhtmlobject" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>

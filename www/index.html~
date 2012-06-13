@@ -27,20 +27,21 @@
 	    <div id="content">
 		    <div id="leftcolumn">
 				<div id="mapfunctions">
-					<h3 id="permalinktitle"><a href="#" onclick="$('#createlink').toggle();linkToMapOpened(this.href);return false;" id="permalink">Link naar kaart</a></h3>
-					<div id="createlink">
-						<span id="closecreatelink" onclick="$('#createlink').hide()"><a href="#" onclick="return false;"><img src="js/theme/default/img/close.gif" alt="Sluiten" title="Sluiten"/></a></span>
-						Directe link deze kaart:<br/><input type="text" value="" id="emaillink" name="emaillink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
+					<h3 id="drawlocationtitle"><button onclick="startDrawingPoint();">Locatie tekenen <img class="defaultmarker" src="js/img/marker.png"></button><button onclick="stopDrawingPoint();" id="cancelDrawingPoint">Annuleren</button></h3>
+					<div id="drawlocationhelp" onclick="$(this).fadeOut('fast')" class="popInWindow">
+						<span id="closedrawlocation" onclick="$('#drawlocationhelp').fadeOut('fast')" class="closeWindow"><a href="#" onclick="return false;"><img src="js/theme/default/img/close.gif" alt="Sluiten" title="Sluiten"/></a></span>
+						Klik op de kaart op de gewenste plek om een locatie te tekenen. Voer daarna een titel en omschrijving in. Het punt is nog te verschuiven.
+					</div>
+					<h3 id="permalinktitle"><button onclick="linkToMapOpened(document.location.href);return false;" id="permalink">Link naar kaart</button></h3>
+					<div id="createlink" class="popInWindow">
+						<span id="closecreatelink" onclick="$('#createlink').hide()" class="closeWindow"><a href="#" onclick="return false;"><img src="js/theme/default/img/close.gif" alt="Sluiten" title="Sluiten"/></a></span>
+						Link losse kaart:<br/><input type="text" value="" id="embedlink" name="embedlink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed HTML iframe:<br/><input type="text" value="" id="embedhtmliframe" name="embedhtmliframe" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed HTML Object tag:<br/><input type="text" value="" id="embedhtmlobject" name="embedhtmlobject" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
-						Embed losse link:<br/><input type="text" value="" id="embedlink" name="embedlink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
-						Geselecteerde marker tonen op kaart: <input type="checkbox" checked="checked" id="showmarker" name="showmarker"/><br/>
+Directe link deze kaart:<br/><input type="text" value="" id="emaillink" name="emaillink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Afmetingen kaart:<br/>
 						<input type="radio" value="small" name="mapsizechoice" checked="checked" onchange="linkToMapOpened(document.location.href)"/> klein <input type="radio" value="medium" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> middel  <input type="radio" value="large" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> groot <br/>
-					</div>
-					<h3 id="drawlocationtitle"><a href="#" onclick="return false;">Locatie prikken</a></h3>
-					<div id="drawlocation">
-					
+						<img class="defaultmarker" src="js/img/marker.png">Locatie tonen op kaart: <input type="checkbox" checked="checked" id="showmarker" name="showmarker"/>
 					</div>
 				</div>
 				<p id="searchResults">

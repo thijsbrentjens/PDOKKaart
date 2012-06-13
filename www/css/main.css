@@ -88,14 +88,16 @@ body
 }
 
 #leftcolumn ul {
-	padding-left: 15px;
+	padding-left: 3px;
+	list-style-type: none;
 }
 
 #leftcolumn li {
     font-size: 0.9em;
-    padding: 1px 1px 1px 25px;
+    padding: 1px 1px 5px 32px;
     /* border-bottom: solid 1px grey; */
 }
+
 
 .openurl{
     border: 1px solid #0085C6;
@@ -156,15 +158,36 @@ li
     padding: 0px;
 }
 
+.popInWindow {
+	background-color: #303030;
+	color: white;
+	border: 1px solid #909090;	
+	padding: 5px;
+}
+
+
+#drawlocationtitle {
+	text-align: right;
+}
+
+#drawlocationhelp {
+	display: none;
+	width: 350px;
+	position: absolute;
+	left: 350px;
+	top: 0px;
+}
+
+#cancelDrawingPoint {
+	display: none;
+}
+
 #createlink {
 	display: none;
 	position: absolute;
 	left: 350px;
-	top: 0px;
+	top: 80px;
 	width: 400px;
-	background-color: #F3F5FF;
-	border: 1px solid grey;
-	padding: 5px;
 }
 
 #createlink input {
@@ -175,7 +198,7 @@ li
 }
 
 .geozetSuggestions li.selected{
-	background: url(../js/img/marker.png) no-repeat 0px;
+	background: url(../markertypes/information_blue.png) no-repeat 0px;
 }
 
 #permalinktitle {
@@ -183,9 +206,13 @@ li
 	text-align: right;
 }
 
-#closecreatelink{
+.closeWindow {
 	float: right;
 	margin: 2px;
 	font-weight: bold;
 	color: black;
+}
+
+.defaultmarker {
+	height: 24px;
 }

@@ -6,11 +6,14 @@ OpenLayers.ProxyHost = "../xmldata.php?url=";
 
 Proj4js.defs["EPSG:28992"] = "+title=Amersfoort / RD New +proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +no_defs"; 
 
+var defaultmarkerpath = "markertypes/information_blue.png"; // js/img/marker.png
+
 function init()
 {
 	setMapSize();
 	addFormEnhancements();
-	jQuery(window).resize(setMapSize);
+	$(window).resize(setMapSize);
+	$(".defaultmarker").attr("src",defaultmarkerpath);
 
 	if(jQuery("#map").length>0){
 
@@ -22,7 +25,9 @@ function init()
 		mapPDOKKaart = lusc.getMapObject();
 	
 		// Thijs: markers are used to show Geocoderesults
-		markers = new OpenLayers.Layer.Vector("Geocoderesults");
+		markers = new OpenLayers.Layer.Vector("Geocoderesults",{
+                styleMap: getStyleMap()            
+            });
 		// add popup functions for geocoding results
 		/* */
 		markers.events.register("mouseover", markers, function(e) {
@@ -89,29 +94,14 @@ function init()
 		drawControl = new OpenLayers.Control.DrawFeature(markers, OpenLayers.Handler.Point);
 		
 		drawControl.featureAdded = function(feature){
-			   feature.attributes.title="Locatie";
-			   feature.attributes.description="Omschrijving van de locatie";
-			   onFeatureSelect(feature, true, markersPopupText(feature, true)); // full=true
-			   feature.popupFix = true;
+			   feature.attributes.title="Voer een titel in:";
+			   feature.attributes.description="Voer een omschrijving in:";
 			   startFeatureEdit(feature.id);
 			   stopDrawingPoint();
-			   return false;
-		}
-
-		/*drawControl.events.register("featureadded", markers, function(e) {
-			// this.div.style.cursor = "default";
-			console.log(markers);
-			var feature = this.getFeatureFromEvent(e);
-			if (feature) {
-			   console.log(feature)
-			   // add a popup
 			   onFeatureSelect(feature, true, markersPopupText(feature, true)); // full=true
 			   feature.popupFix = true;
-			} else {
-			    return true;
-			}
-		});*/
-
+			   return false;
+		}
 
 		controls = [
 			new OpenLayers.Control.MousePosition()
@@ -120,9 +110,7 @@ function init()
 			// , new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
 			, touchNav
 		]
-		
-		
-		
+	
 		// for the future upcoming searchresults
 		// attach click to the li-suggestions (if available)
 		// delegate..
@@ -137,7 +125,6 @@ function init()
 			if(x && y){
 				mapPDOKKaart.setCenter(new OpenLayers.LonLat(x, y), z);
 				// TODO: remove all markers, only add this feature?
-				// activate the popup?
 				var ft = markers.getFeatureById(ft_id);
 			    onFeatureSelect(ft, true, markersPopupText(ft, true)); // full=true
 			    ft.popupFix = true;
@@ -172,6 +159,9 @@ function init()
 		});
 		
 		mapPDOKKaart.addControls(controls);
+
+		dragControl.activate();
+		
 		// only set the map center if not already done by lusc api
 		if (!mapPDOKKaart.getCenter()) {
 		 	mapPDOKKaart.setCenter(new OpenLayers.LonLat(155000,463000), 3);
@@ -193,17 +183,25 @@ function endDrag () {
 }
 
 function startDrawingPoint() {
+	// before adding, remove all existing markers?
+    removePopups(markers);
+    markers.destroyFeatures();
+    $('#searchResults').html('')
+	// $('#createlink').hide();
+	$("#drawlocationhelp").fadeIn();
+	$("#cancelDrawingPoint").fadeIn();
 	dragControl.activate();
 	drawControl.activate();
 	var blockPanning = false; // to block panning while drawing
     drawControl.handler.stopDown = blockPanning;
-    drawControl.handler.stopUp = blockPanning;   
-    
+    drawControl.handler.stopUp = blockPanning;    
 }
 
 function stopDrawingPoint() {
 	drawControl.deactivate();
-	dragControl.deactivate();
+	$("#cancelDrawingPoint").fadeOut();	
+	$("#drawlocationhelp").fadeOut();	
+	// dragControl.de activate();
 }
 
 /****
@@ -250,8 +248,8 @@ function searchLocationChanged() {
 	**/ 
 
 function handleGeocodeResponse(req, returnCoords){
-    markers.destroyFeatures();
     removePopups(markers);
+    markers.destroyFeatures();
     $('#searchResults').html('').show();
     
     var responseText = req.responseText;
@@ -354,12 +352,13 @@ function handleGeocodeResponse(req, returnCoords){
                 	maxx = Math.max(maxx, x);
                 	maxy = Math.max(maxy, y);
                 	minzoom = Math.min(minzoom, gazetteerConfig.gazetteer.zoomScale[zoom]);
-					var newFt = new OpenLayers.Feature.Vector( new OpenLayers.Geometry.Point(x, y), {"title": suggestion, "postcode": postcode, "adres": adres, "plaats": plaats, "gemeente": gemeente, "provincie": prov},
-							{externalGraphic: 'js/img/marker.png', graphicHeight: 26, graphicWidth: 20});
+					var newFt = new OpenLayers.Feature.Vector( new OpenLayers.Geometry.Point(x, y), {"title": suggestion, "postcode": postcode, "adres": adres, "plaats": plaats, "gemeente": gemeente, "provincie": prov}
+					// ,{externalGraphic: 'js/img/marker.png', graphicHeight: 26, graphicWidth: 20}
+					);
 					newId = newFt.id;
 					features.push(newFt);
                 }
-				var gazHtml = '<li><a href="#">('+(i+1) + ") " + suggestion+' <span class="hash">'+hash+'</span>'+' <span class="x">'+x+'</span> <span class="y">'+y+'</span> <span class="z">'+z+'</span> <span class="ft_id" id="searchresult_'+newId.split('.')[2]+'">'+newId+'</span></a></li>';
+				var gazHtml = '<li id="listitem_'+newId.split('.')[2]+'"><a href="#">('+(i+1) + ") " + suggestion+' <span class="hash">'+hash+'</span>'+' <span class="x">'+x+'</span> <span class="y">'+y+'</span> <span class="z">'+z+'</span> <span class="ft_id" id="searchresult_'+newId.split('.')[2]+'">'+newId+'</span></a></li>';
                 $("ul.geozetSuggestions").append(gazHtml);
 
                 // set (calculated) height for the result div
@@ -408,6 +407,9 @@ function linkToMapOpened(permalink){
 	marker = x,y
 	<pm>	
 	*/
+	if (!permalink) permalink = document.location.href;
+	$('#drawlocation').hide();	
+	$('#createlink').fadeIn();
 	// add the parameters, serialize them just explicitly now.
 	var apiParams = "&loc=" + mapPDOKKaart.getCenter().lon + "," +mapPDOKKaart.getCenter().lat;
 	apiParams += "&zl=" + mapPDOKKaart.getZoom();
@@ -475,9 +477,9 @@ function onFeatureSelect(feature, full, text) {
 	var className="";
 	var popupCloseButton = false;
 	var border = 2;
+	var popupCloseButton = true;
 	if (full) {
 		popupSize = new OpenLayers.Size(200, 120);
-		popupCloseButton = true;
         feature.popupFix = true;
 		activeFeature = feature;
 		// remove highlights
@@ -532,33 +534,53 @@ function markersPopupText(feature, full) {
 		description += "Provincie: " + ft.attributes.provincie + "\n";
 	    ft.attributes.description = description;
     }
-    text += "<div id='popupcontent_"+ft.id+"'><h4 class='"+className+"'><input type='text' readonly value='"+ft.attributes.title + "' id='markertitle' name='markertitle' size='30' onchange='updateMarkerTitle(this.value, \""+ ft.id + "\")'/></h4>";
+    text += "<div id='popupcontent_"+ft.id+"'><h4 class='"+className+"'><input type='text' value='"+ft.attributes.title + "' id='markertitle' name='markertitle' size='30' onchange='updateMarkerTitle(this.value, \""+ ft.id + "\")'/></h4>";
     // if not full, then only hide the markertext?
 	// TODO: remove separate functions for editing? Just do that by default?
     if(full){
-	    text+="<div><textarea id='markertext' name='markertext' cols='40' rows='5' readonly onchange='updateMarkerText(this.value, \""+ ft.id + "\")'>";
-	    text += ft.attributes.description + "</textarea><br/><button id='btnStartEdit' onclick='startFeatureEdit(\""+ ft.id +"\")'>Bewerken</button> - <button id='btnStopEdit' onclick='stopFeatureEdit(\""+ ft.id +"\")' disabled='disabled'>Klaar met bewerken</a></div>";
+	    text+="<div><textarea id='markertext' name='markertext' cols='40' rows='5' onchange='updateMarkerText(this.value, \""+ ft.id + "\")'>";
+	    // text += ft.attributes.description + "</textarea><br/><button id='btnStartEdit' onclick='startFeatureEdit(\""+ ft.id +"\")'>Bewerken</button> - <button id='btnStopEdit' onclick='stopFeatureEdit(\""+ ft.id +"\")' disabled='disabled'>Klaar met bewerken</button></div>";
+	    text += ft.attributes.description + "</textarea><br/>"
+	    // add coordinates in form
+	    text += "Coordinaten (RD): X: <input type='text' id='location_x' name='location_x' value='"+ft.geometry.x+"' size='10'/>, ";
+	    text += "Y: <input type='text' id='location_y' name='location_y' value='"+ft.geometry.y+"' size='10'/><br/>";
+	    // add buttons for editing marker
+	    text +="<button id='btnStopEdit' onclick='stopFeatureEdit(\""+ ft.id +"\")'>Klaar</button> <button id='btnRemoveMarker' onclick='removeFeature(\""+ ft.id +"\")'>Verwijder locatie</button></div>";
     }
     text+="</div>";
 	return text;
 }
 
 function startFeatureEdit(ft_id) {
+	dragControl.activate();
 	// TODO: change style of marker
 	$("#markertitle").attr("readonly","");
 	$("#markertext").attr("readonly","");
-	$("#btnStartEdit").attr("disabled","disabled");
-	$("#btnStopEdit").attr("disabled","");
-	dragControl.activate();
+	// $("#btnStartEdit").attr("disabled","disabled");
+	// $("#btnStopEdit").attr("disabled","");
 }
 
 function stopFeatureEdit(ft_id) {
+	linkToMapOpened();
+
+	// dragControl.deactivate();
 	// change style
-	$("#markertitle").attr("readonly", "readonly");
-	$("#markertext").attr("readonly", "readonly");
-	$("#btnStartEdit").attr("disabled","");
-	$("#btnStopEdit").attr("disabled","disabled");
-	dragControl.deactivate();	
+	// $("#markertitle").attr("readonly", "readonly");
+	// $("#markertext").attr("readonly", "readonly");
+	// $("#btnStartEdit").attr("disabled","");
+	// $("#btnStopEdit").attr("disabled","disabled");
+
+}
+
+function removeFeature (ft_id) {
+	var ok = confirm ("Deze locatie verwijderen?")
+	if (ok) {
+		$('#listitem_'+ft_id.split('.')[2]).remove()
+		var ft = markers.getFeatureById(ft_id);
+		mapPDOKKaart.removePopup(ft.popup);
+		markers.removeFeatures([ft]);
+		// also from the list
+	}
 }
 
 function removePopups(layer) {
@@ -622,4 +644,35 @@ function updateMarkerTitle(markerTitle, ft_id) {
 function updateMarkerText(markerText, ft_id) {
 	var ft = markers.getFeatureById(ft_id);
 	ft.attributes.description = markerText;
+}
+
+
+function getStyleMap() {
+
+	var defaultStyle = new OpenLayers.Style({
+	  'pointRadius': 14,
+	  // graphicwidth/height fail in IE...
+	  //'graphicWidth':'16',
+	  //'graphicHeight':'19',
+	  'externalGraphic': defaultmarkerpath,
+  	  'graphicYOffset':-28,
+	  'fillColor':'#ffffff',
+	  'fillOpacity':'1.0',
+	  'strokeColor':'#FF5C00',
+	  'strokeWidth':'3'
+	});
+
+	var selectStyle = new OpenLayers.Style({
+	  'pointRadius': 15,
+      'externalGraphic': defaultmarkerpath,
+	  'fillOpacity':'1.0',
+	  // graphicwidth/height fail in IE...
+	  //'graphicWidth':'20',
+	  //'graphicHeight':'24',
+  	  'graphicYOffset':-30
+	});
+
+	var styleMap = new OpenLayers.StyleMap({'default': defaultStyle,
+			         'select': selectStyle, 'temporary': selectStyle});
+	return styleMap;
 }

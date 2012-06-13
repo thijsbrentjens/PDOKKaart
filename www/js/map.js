@@ -1,4 +1,4 @@
-var mapPDOKKaart, markers, activeFeature, dragControl;
+var mapPDOKKaart, markers, activeFeature, dragControl, drawControl;
 var pdokachtergrondkaart;
 
 // TODO: make config object, with anonymous function
@@ -86,10 +86,22 @@ function init()
             })
 		
 		dragControl = new OpenLayers.Control.DragFeature(markers);
-	
+		drawControl = new OpenLayers.Control.DrawFeature(markers, OpenLayers.Handler.Point);
+		
+		drawControl.featureAdded = function(feature){
+			   feature.attributes.title="Locatie";
+			   feature.attributes.description="Omschrijving van de locatie";
+			   onFeatureSelect(feature, true, markersPopupText(feature, true)); // full=true
+			   feature.popupFix = true;
+			   startFeatureEdit(feature.id);
+			   stopDrawingPoint();
+			   return false;
+		}
+
 		controls = [
 			new OpenLayers.Control.MousePosition()
 			, dragControl
+			, drawControl
 			// , new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
 			, touchNav
 		]
@@ -110,7 +122,6 @@ function init()
 			if(x && y){
 				mapPDOKKaart.setCenter(new OpenLayers.LonLat(x, y), z);
 				// TODO: remove all markers, only add this feature?
-				// activate the popup?
 				var ft = markers.getFeatureById(ft_id);
 			    onFeatureSelect(ft, true, markersPopupText(ft, true)); // full=true
 			    ft.popupFix = true;
@@ -154,15 +165,29 @@ function init()
 }
 
 function startDrag () {
-	console.log("start drag")
+	
 }
 
 function doDrag () {
-	console.log("do drag")
+	
 }
 
 function endDrag () {
-	console.log("end drag")
+	
+}
+
+function startDrawingPoint() {
+	dragControl.activate();
+	drawControl.activate();
+	var blockPanning = false; // to block panning while drawing
+    drawControl.handler.stopDown = blockPanning;
+    drawControl.handler.stopUp = blockPanning;   
+    
+}
+
+function stopDrawingPoint() {
+	drawControl.deactivate();
+	dragControl.deactivate();
 }
 
 /****
@@ -493,33 +518,31 @@ function markersPopupText(feature, full) {
     }
     text += "<div id='popupcontent_"+ft.id+"'><h4 class='"+className+"'><input type='text' readonly value='"+ft.attributes.title + "' id='markertitle' name='markertitle' size='30' onchange='updateMarkerTitle(this.value, \""+ ft.id + "\")'/></h4>";
     // if not full, then only hide the markertext?
-
+	// TODO: remove separate functions for editing? Just do that by default?
     if(full){
-	    // and if the feature has the attributes..
 	    text+="<div><textarea id='markertext' name='markertext' cols='40' rows='5' readonly onchange='updateMarkerText(this.value, \""+ ft.id + "\")'>";
-	    text += ft.attributes.description + "</textarea><a href='#' onclick='startFeatureEdit("+ ft.id +")'>Bewerken</a> - <a href='#' onclick='stopFeatureEdit("+ ft.id +")'>Klaar met bewerken</a></div>";
+	    text += ft.attributes.description + "</textarea><br/><button id='btnStartEdit' onclick='startFeatureEdit(\""+ ft.id +"\")'>Bewerken</button> - <button id='btnStopEdit' onclick='stopFeatureEdit(\""+ ft.id +"\")' disabled='disabled'>Klaar met bewerken</a></div>";
     }
-    // TODO: function: edit text fields and / or move feature
-    // if ready editing, then close dragging
     text+="</div>";
 	return text;
 }
 
 function startFeatureEdit(ft_id) {
-	// TODO: change style
+	// TODO: change style of marker
 	$("#markertitle").attr("readonly","");
 	$("#markertext").attr("readonly","");
+	$("#btnStartEdit").attr("disabled","disabled");
+	$("#btnStopEdit").attr("disabled","");
 	dragControl.activate();
-	// readonly='readonly
-	// TODO: add stopFeatureEdit
 }
 
 function stopFeatureEdit(ft_id) {
 	// change style
-	$("#markertitle").attr('readonly', 'readonly');
-	$("#markertext").attr('readonly', 'readonly');
+	$("#markertitle").attr("readonly", "readonly");
+	$("#markertext").attr("readonly", "readonly");
+	$("#btnStartEdit").attr("disabled","");
+	$("#btnStopEdit").attr("disabled","disabled");
 	dragControl.deactivate();	
-	// readonly='readonly'
 }
 
 function removePopups(layer) {

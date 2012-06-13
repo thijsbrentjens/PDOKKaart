@@ -425,7 +425,7 @@ function linkToMapOpened(permalink){
 	permalink = permalink.replace("#","?");
 	permalink = permalink.split("?")[0];
 	permalink += "?" +apiParams;
-	$("#emaillink").val(permalink);
+	// $("#emaillink").val(permalink);
 
 	// size of the map
 	var mapsize = $('input:radio[name=mapsizechoice]:checked').val();
@@ -455,7 +455,9 @@ function linkToMapOpened(permalink){
 	
 	$("#embedlink").val(embedLink);
 
-	return false;
+	$("#sendemaillink").attr("href","mailto:?subject=Locatie&body=" + encodeURIComponent(embedLink));
+
+	return true;
 }
 
 function onPopupClose(evt, feature) {

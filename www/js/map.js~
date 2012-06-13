@@ -425,7 +425,7 @@ function linkToMapOpened(permalink){
 	permalink = permalink.replace("#","?");
 	permalink = permalink.split("?")[0];
 	permalink += "?" +apiParams;
-	$("#emaillink").val(permalink);
+	// $("#emaillink").val(permalink);
 
 	// size of the map
 	var mapsize = $('input:radio[name=mapsizechoice]:checked').val();
@@ -455,7 +455,9 @@ function linkToMapOpened(permalink){
 	
 	$("#embedlink").val(embedLink);
 
-	return false;
+	$("#sendemaillink").attr("href","mailto:?subject=Locatie&body=" + encodeURIComponent(embedLink));
+
+	return true;
 }
 
 function onPopupClose(evt, feature) {
@@ -542,8 +544,8 @@ function markersPopupText(feature, full) {
 	    // text += ft.attributes.description + "</textarea><br/><button id='btnStartEdit' onclick='startFeatureEdit(\""+ ft.id +"\")'>Bewerken</button> - <button id='btnStopEdit' onclick='stopFeatureEdit(\""+ ft.id +"\")' disabled='disabled'>Klaar met bewerken</button></div>";
 	    text += ft.attributes.description + "</textarea><br/>"
 	    // add coordinates in form
-	    text += "Coordinaten (RD): X: <input type='text' id='location_x' name='location_x' value='"+ft.geometry.x+"' size='10'/>, ";
-	    text += "Y: <input type='text' id='location_y' name='location_y' value='"+ft.geometry.y+"' size='10'/><br/>";
+	    text += "Coordinaten (RD): X: <input type='text' id='location_x' name='location_x' value='"+ft.geometry.x+"' size='8'/>, ";
+	    text += "Y: <input type='text' id='location_y' name='location_y' value='"+ft.geometry.y+"' size='8'/><br/>";
 	    // add buttons for editing marker
 	    text +="<button id='btnStopEdit' onclick='stopFeatureEdit(\""+ ft.id +"\")'>Klaar</button> <button id='btnRemoveMarker' onclick='removeFeature(\""+ ft.id +"\")'>Verwijder locatie</button></div>";
     }

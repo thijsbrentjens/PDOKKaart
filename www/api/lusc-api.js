@@ -65,6 +65,16 @@ Lusc.Api = function(config) {
      * Reference to markertype object
      */
     this.tekst = null;
+    
+    /**
+     * Reference to WMS-URL object
+     */
+    this.wmsurl = null;
+
+    /**
+     * Reference to WMS layer(s) object
+     */
+    this.wmslayers = null;
 
     /**
      * Reference to the DIV-id the map should be rendered in
@@ -187,6 +197,14 @@ Lusc.Api.prototype.validateConfig = function(config) {
         this.tekst = config.tekst;
     }
     
+    if (config.wmsurl) {
+        this.wmsurl = config.wmsurl;
+    }
+
+    if (config.wmslayers) {
+        this.wmslayers = config.wmslayers;
+    }
+
     if (config.externalGraphic) {
         this.externalGraphic = config.externalGraphic;
     }
@@ -242,7 +260,7 @@ Lusc.Api.prototype.createOlMap = function() {
 					var layer = new OpenLayers.Layer.WMS.Untiled(
 							"AAN",
 							"http://geodata.nationaalgeoregister.nl/aan/wms",
-							{layers: 'aan',transparent: 'true',format: "image/gif"},
+							{layers: 'aan',transparent: 'true',format: "image/png"},
 							{visibility: true,isBaseLayer:false},
 							{singleTile: true}
 					);
@@ -252,7 +270,7 @@ Lusc.Api.prototype.createOlMap = function() {
 					var layer = new OpenLayers.Layer.WMS.Untiled(
 							"AHN25M",
 							"http://geodata.nationaalgeoregister.nl/ahn25m/wms",
-							{layers: 'ahn25m',transparent: 'true',format: "image/gif"},
+							{layers: 'ahn25m',transparent: 'true',format: "image/png"},
 							{visibility: true,isBaseLayer:false},
 							{singleTile: true}
 					);
@@ -262,7 +280,7 @@ Lusc.Api.prototype.createOlMap = function() {
 					var layer = new OpenLayers.Layer.WMS.Untiled(
 							"Gemeentegrenzen",
 							"http://geodata.nationaalgeoregister.nl/bestuurlijkegrenzen/wms?sld=http://luuks.github.com/API/gemeentegrenzen_grijs_gestippeld.sld",
-							{layers: 'gemeenten_2012',transparent: 'true',format: "image/gif"},
+							{layers: 'gemeenten_2012',transparent: 'true',format: "image/png"},
 							{visibility: true,isBaseLayer:false},
 							{singleTile: true}
 					);
@@ -272,7 +290,7 @@ Lusc.Api.prototype.createOlMap = function() {
 					var layer = new OpenLayers.Layer.WMS.Untiled(
 							"Gemeentegrenzen",
 							"http://geodata.nationaalgeoregister.nl/bestuurlijkegrenzen/wms?sld=http://luuks.github.com/API/gemeentegrenzen_label_grijs_gestippeld.sld",
-							{layers: 'gemeenten_2012',transparent: 'true',format: "image/gif"},
+							{layers: 'gemeenten_2012',transparent: 'true',format: "image/png"},
 							{visibility: true,isBaseLayer:false},
 							{singleTile: true}
 					);
@@ -282,7 +300,7 @@ Lusc.Api.prototype.createOlMap = function() {
 					var layer = new OpenLayers.Layer.WMS.Untiled(
 							"Nationale parken",
 							"http://geodata.nationaalgeoregister.nl/nationaleparken/wms",
-							{layers: 'nationaleparken',transparent: 'true',format: "image/gif"},
+							{layers: 'nationaleparken',transparent: 'true',format: "image/png"},
 							{visibility: true,isBaseLayer:false},
 							{singleTile: true}
 					);
@@ -292,7 +310,7 @@ Lusc.Api.prototype.createOlMap = function() {
 					var layer = new OpenLayers.Layer.WMS.Untiled(
 							"NOK2011",
 							"http://geodata.nationaalgeoregister.nl/nok2011/wms",
-							{layers: 'begrenzing,planologischeehs,verwervinginrichting',transparent: 'true',format: "image/gif"},
+							{layers: 'begrenzing,planologischeehs,verwervinginrichting',transparent: 'true',format: "image/png"},
 							{visibility: true,isBaseLayer:false},
 							{singleTile: true}
 					);
@@ -302,7 +320,7 @@ Lusc.Api.prototype.createOlMap = function() {
 					var layer = new OpenLayers.Layer.WMS.Untiled(
 							"Gevectoriseerde Bonnebladen",
 							"http://mapserver.sara.nl/bonne_vect/cgi-bin/mapserv?map=bonne_vect_texel.map", 
-							{layers: 'TEXEL_20120423',transparent: 'true',format: "image/gif"},
+							{layers: 'TEXEL_20120423',transparent: 'true',format: "image/png"},
 							{visibility: true,isBaseLayer:false},
 							{singleTile: true}
 					);
@@ -312,7 +330,7 @@ Lusc.Api.prototype.createOlMap = function() {
 					var layer = new OpenLayers.Layer.WMS.Untiled(
 							"Gevectoriseerde Bonnebladen",
 							"http://mapserver.sara.nl/bonne_vect/cgi-bin/mapserv?map=bonne_vect_texel.map", 
-							{layers: 'TEXEL_20120423_OUTLINE',transparent: 'true',format: "image/gif"},
+							{layers: 'TEXEL_20120423_OUTLINE',transparent: 'true',format: "image/png"},
 							{visibility: true,isBaseLayer:false},
 							{singleTile: true},
 							{
@@ -329,6 +347,18 @@ Lusc.Api.prototype.createOlMap = function() {
 		}
 	}
 	
+    // apply WMSURL and WMSLAYERS if applicable
+	if ((this.wmsurl != null) && (this.wmslayers != null)) {
+		var lyrWMS = new OpenLayers.Layer.WMS.Untiled(
+				this.wmslayers,
+				this.wmsurl, 
+				{layers: this.wmslayers,transparent: 'true',format: "image/png"},
+				{visibility: true,isBaseLayer:false},
+				{singleTile: true}
+		);
+        olMap.addLayer(lyrWMS);
+	}
+
     // apply BBOX or zoomlevel and location
     if (this.bbox != null) {
         olMap.zoomToExtent(OpenLayers.Bounds.fromArray(this.bbox).transform(olMap.displayProjection, olMap.getProjectionObject()));
@@ -449,4 +479,15 @@ Lusc.Api.prototype.setLocation = function(loc) {
 
 Lusc.Api.prototype.setZoomLevel = function(zl) {
 	this.map.zoomTo (zl);
+}
+
+Lusc.Api.prototype.reprojectWGS84toRD = function(lat,lon){
+	Proj4js.defs["EPSG:28992"] = "+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.040,49.910,465.840,-0.40939,0.35971,-1.86849,4.0772";
+	//Proj4js.defs["EPSG:28992"] = "+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.999908 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs <>";
+	pointRD = new OpenLayers.LonLat(lon,lat)
+        .transform(
+            new OpenLayers.Projection("EPSG:4326"), // transform from wgs84 
+            new OpenLayers.Projection("EPSG:28992") // new RD
+        );
+	return(pointRD);
 }

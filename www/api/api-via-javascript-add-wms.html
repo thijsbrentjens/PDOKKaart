@@ -36,14 +36,12 @@
     var api = null;
     function init() {
          api = new Lusc.Api({
-		    loc: [150000,450000],
-		    layer: 'AAN',
-		    mloc: [150000,450000],
-		    zl: 8,
-		    titel: '<CENTER>Marker</CENTER>',
-		    tekst: '<CENTER>Test<BR><img src="http://geonovum.nl/sites/default/files/geonovum_favicon.ico" width="36" height="36"><BR><a href="http://www.geonovum.nl" target="_blank"><img src="http://www.nationaalgeoregister.nl/geonetwork/images/logos/geonovum.jpg" width="40" height="21"></a></CENTER>',
-		    externalGraphic: 'http://www.nationaalgeoregister.nl/geonetwork/images/logos/geonovum.jpg',
-		    pointRadius: 20
+		    layer: 'NOK2011',
+		    wmsurl: 'http://geodata.nationaalgeoregister.nl/vin/wms',
+			wmslayers: 'bevaarbaarheid',
+			mloc: [155792,576594],
+			titel: 'Bevaarbaarheid',
+			tekst: 'Legenda:<BR><img src="http://geodata.nationaalgeoregister.nl/vin/wms?TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYER=bevaarbaarheid&FORMAT=image%2Fgif">'
 		});
 		//Beschikbare kaartlagen: alert(api.getLayers());
 		//Het pad naar de markertypes: alert(api.getMarkerPath());
@@ -51,7 +49,9 @@
 		//Pan naar een andere locatie: api.setLocation([100000,400000]);
 		//Zoom naar een ander zoomnivo: api.setZoomLevel(3);
 		//Op basis van de locatie van de client inzoomen op de kaart
-		navigator.geolocation.getCurrentPosition(showLocation);
+		//navigator.geolocation.getCurrentPosition(showLocation);
+		api.setLocation([155792,576594]);
+		api.setZoomLevel(7)
 	}
 	function showLocation(position){
 		var lat = position.coords.latitude;

@@ -9,19 +9,34 @@
       }
       </style>
 
-
+	<script>
+		// uit te voeren na init();
+		function customInit() {
+			navigator.geolocation.getCurrentPosition(showLocation);			
+		}
+		function showLocation(position){
+			var lat = position.coords.latitude;
+			var lon = position.coords.longitude;
+			// Thijs: en hier pakken we de PDOK Kaart erbij via de API.	
+			var map = pdokkaart.getMapObject();
+			
+			pointRD = pdokkaart.reprojectWGS84toRD(lat,lon);
+			X = pointRD.lon;
+			Y = pointRD.lat;
+			pdokkaart.setLocation([parseInt(X),parseInt(Y)]);
+		}
+	</script>
 <!-- plak hier de kaart code voor de Head -->
-<script src="http://nieuwsinkaart.nl/pdok/kaart/api/OpenLayers.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/api/lusc-api.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/js/jquery.js"></script><link rel="stylesheet" href="http://nieuwsinkaart.nl/pdok/kaart/api/styles/default/style.css" type="text/css"><link rel="stylesheet" href="http://nieuwsinkaart.nl/pdok/kaart/api/style.css" type="text/css">    <script>    function init() {        var pdokkaart = new Lusc.Api({		    loc: [181785.92,481671.52],		    mloc: [181174.40000000005,481345.59999999986],		    externalGraphic: 'http://www.nationaalgeoregister.nl/geonetwork/images/logos/geonovum.jpg',		    pointRadius: 20,		    titel: 'Bos!',		    tekst: 'dhadh asdie n dasjdjadj ',		    zl: 9		});    }    </script>
+<script src="http://nieuwsinkaart.nl/pdok/kaart/api/OpenLayers.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/api/js/proj4js-compressed.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/api/lusc-api.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/js/jquery.js"></script><link rel="stylesheet" href="http://nieuwsinkaart.nl/pdok/kaart/api/styles/default/style.css" type="text/css"><link rel="stylesheet" href="http://nieuwsinkaart.nl/pdok/kaart/api/style.css" type="text/css">    <script>    function createPDOKKaart() {        var api = new Lusc.Api({		    loc: [168171.2,415469.44],		    layer: 'AAN',		    mloc: [168587.84,415415.68],		    externalGraphic: 'http://nieuwsinkaart.nl/pdok/kaart/api/markertypes/information_blue.png',		    pointRadius: 20,		    titel: 'Title en zo',		    tekst: 'Een omschrijving bij de marker',		    zl: 9		});		return api    }    </script>
 
 
 </head>
 <body>
 <h1>Javascript include voorbeeld, gegenereerde code</h1>
-Deze pagina laat zien hoe via de PDOK Kaart instellingen pagina, de gegenereerde code eruit komt te zien. De kaart komt er als volgt uit:
+Deze pagina laat zien hoe via de PDOK Kaart instellingen pagina, de gegenereerde code eruit komt te zien. De afmetingen van de kaart, worden bepaald via CSS. De kaart komt er als volgt uit:
 
 <!-- plak hier de kaart code voor de Body -->
-<div id="map"></div><script>init();</script>
+<div id="map"></div><script>var pdokkaart = createPDOKKaart();customInit()</script>
 
-De afmetingen van de kaart, worden bepaald via CSS.
 </body>
 </html>

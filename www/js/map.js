@@ -468,7 +468,8 @@ function linkToMapOpened(permalink){
 	var basepath = "http://nieuwsinkaart.nl/pdok/kaart/";
 
 	var codeHead = '<script src="'+basepath+'api/OpenLayers.js"></script>';
-	codeHead +='<script src="'+basepath+'api/lusc-api.js"></script>'
+    codeHead +='<script src="'+basepath+'api/javascripts/proj4js-compressed.js"></script>';
+	codeHead +='<script src="'+basepath+'api/lusc-api.js"></script>';
     codeHead +='<script src="'+basepath+'js/jquery.js"></script>';
     codeHead +='<link rel="stylesheet" href="'+basepath+'api/styles/default/style.css" type="text/css">';
     codeHead +='<link rel="stylesheet" href="'+basepath+'api/style.css" type="text/css">';
@@ -491,26 +492,28 @@ function linkToMapOpened(permalink){
     codeHead +='      href: "'+basepath+'api/style.css"';
     codeHead +='     });';
     */
-	codeHead +='    function init() {';
-	codeHead +='        var pdokkaart = new Lusc.Api({';
+	codeHead +='    function createPDOKKaart() {';
+	codeHead +='        var api = new Lusc.Api({';
 	codeHead +='		    loc: ['+ mapPDOKKaart.getCenter().lon +','+ mapPDOKKaart.getCenter().lat +'],';
-	// TODO: if a layer is added, include this
-	// codeHead +='		    layer: \'AAN\',';
+	// TODO: if a layer is added by WMS or by the PDOK list, include this
+	// For the demo, now add a WMS layer
+	codeHead +='		    layer: \'AAN\',';
 	if (activeFeature && markers.features.length > 0 && $("#showmarker").is(':checked')) {
 		codeHead +='		    mloc: ['+activeFeature.geometry.x+','+activeFeature.geometry.y+'],';
-		codeHead +='		    externalGraphic: \'http://www.nationaalgeoregister.nl/geonetwork/images/logos/geonovum.jpg\',';		
+		codeHead +='		    externalGraphic: \'http://nieuwsinkaart.nl/pdok/kaart/api/markertypes/information_blue.png\',';		
 		codeHead +='		    pointRadius: 20,';
 		codeHead +='		    titel: \'' + activeFeature.attributes.title + '\',';
 		codeHead +='		    tekst: \'' + activeFeature.attributes.description + '\',';
 	}
 	codeHead +='		    zl: '+mapPDOKKaart.getZoom(); // zl always as last, to make sure the comma's are okay
 	codeHead +='		});';
+	codeHead +='		return api';
 	codeHead +='    }';
 	codeHead +='    </script>';
 	
 	
 	var codeBody ='<div id="map"></div>';
-	codeBody +='<script>init();</script>';
+	codeBody +='<script>var pdokkaart = createPDOKKaart();</script>';
 	
 	$("#scriptcodeHead").val(codeHead);
 	$("#scriptcodeBody").val(codeBody);

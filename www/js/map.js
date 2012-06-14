@@ -467,33 +467,54 @@ function linkToMapOpened(permalink){
 	// TODO: use document.location.href?
 	var basepath = "http://nieuwsinkaart.nl/pdok/kaart/";
 
-	var code = '<script src="'+basepath+'api/OpenLayers.js"></script>';
-	code += '<script src="'+basepath+'api/lusc-api.js"></script>'
-    code += '<script src="'+basepath+'js/jquery.js"></script>';
-    code += '<link rel="stylesheet" href="'+basepath+'api/styles/default/style.css" type="text/css">';
-    code += '<link rel="stylesheet" href="'+basepath+'api/style.css" type="text/css">';
-	code +='    <script>';
-	code +='    function init() {';
-	code +='        var pdokkaart = new Lusc.Api({';
-	code +='		    loc: ['+ mapPDOKKaart.getCenter().lon +','+ mapPDOKKaart.getCenter().lat +'],';
-	// TODO: if a layer is added, include this
-	// code +='		    layer: \'AAN\',';
-	if (activeFeature && markers.features.length > 0 && $("#showmarker").is(':checked')) {
-		code +='		    mloc: ['+activeFeature.geometry.x+','+activeFeature.geometry.y+'],';
-		code +='		    externalGraphic: \'http://www.nationaalgeoregister.nl/geonetwork/images/logos/geonovum.jpg\',';		
-		code +='		    pointRadius: 20,';
-		code +='		    titel: \'' + activeFeature.attributes.title + '\',';
-		code +='		    tekst: \'' + activeFeature.attributes.description + '\',';
-	}
-	code +='		    zl: '+mapPDOKKaart.getZoom(); // zl always as last, to make sure the comma's are okay
-	code +='		});';
-	code +='    }';
-	code +='    </script>';
-	code +='<div id="map"></div>';
-	code +='<script>init()</script>';
+	var codeHead = '<script src="'+basepath+'api/OpenLayers.js"></script>';
+	codeHead +='<script src="'+basepath+'api/lusc-api.js"></script>'
+    codeHead +='<script src="'+basepath+'js/jquery.js"></script>';
+    codeHead +='<link rel="stylesheet" href="'+basepath+'api/styles/default/style.css" type="text/css">';
+    codeHead +='<link rel="stylesheet" href="'+basepath+'api/style.css" type="text/css">';
+	codeHead +='    <script>';
+	/*
+	// load CSS dynamically: note, this does not work properly in IE8
+	codeHead +='    jQuery("head").append("<link>");';
+    codeHead +='    css = jQuery("head").children(":last");';
+    codeHead +='    css.attr({ ';
+    codeHead +='      rel:  "stylesheet",';
+    codeHead +='      type: "text/css",';
+    codeHead +='      href: "'+basepath+'api/styles/default/style.css"';
+    codeHead +='     });';
 	
-	$("#scriptcode").val(code);
-
+	codeHead +='    jQuery("head").append("<link>");';
+    codeHead +='    css = jquery("head").children(":last");';
+    codeHead +='    css.attr({ ';
+    codeHead +='      rel:  "stylesheet",';
+    codeHead +='      type: "text/css",';
+    codeHead +='      href: "'+basepath+'api/style.css"';
+    codeHead +='     });';
+    */
+	codeHead +='    function init() {';
+	codeHead +='        var pdokkaart = new Lusc.Api({';
+	codeHead +='		    loc: ['+ mapPDOKKaart.getCenter().lon +','+ mapPDOKKaart.getCenter().lat +'],';
+	// TODO: if a layer is added, include this
+	// codeHead +='		    layer: \'AAN\',';
+	if (activeFeature && markers.features.length > 0 && $("#showmarker").is(':checked')) {
+		codeHead +='		    mloc: ['+activeFeature.geometry.x+','+activeFeature.geometry.y+'],';
+		codeHead +='		    externalGraphic: \'http://www.nationaalgeoregister.nl/geonetwork/images/logos/geonovum.jpg\',';		
+		codeHead +='		    pointRadius: 20,';
+		codeHead +='		    titel: \'' + activeFeature.attributes.title + '\',';
+		codeHead +='		    tekst: \'' + activeFeature.attributes.description + '\',';
+	}
+	codeHead +='		    zl: '+mapPDOKKaart.getZoom(); // zl always as last, to make sure the comma's are okay
+	codeHead +='		});';
+	codeHead +='    }';
+	codeHead +='    </script>';
+	
+	
+	var codeBody ='<div id="map"></div>';
+	codeBody +='<script>init();</script>';
+	
+	$("#scriptcodeHead").val(codeHead);
+	$("#scriptcodeBody").val(codeBody);
+	
 	return true;
 }
 

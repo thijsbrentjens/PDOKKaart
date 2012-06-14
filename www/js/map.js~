@@ -421,6 +421,10 @@ function linkToMapOpened(permalink){
 	if (activeFeature && markers.features.length > 0 && $("#showmarker").is(':checked')) {
 		apiParams+="&mloc="+activeFeature.geometry.x+","+activeFeature.geometry.y+"&mt=2"+"&titel="+encodeURIComponent(activeFeature.attributes.title)+"&tekst="+encodeURIComponent(activeFeature.attributes.description);
 	}
+	
+	// TODO: add a WMS layer, by adding a WMS URL, Layer Name and title
+	// TODO: check URL length
+	
 
 	permalink = permalink.replace("#","?");
 	permalink = permalink.split("?")[0];
@@ -456,6 +460,39 @@ function linkToMapOpened(permalink){
 	$("#embedlink").val(embedLink);
 
 	$("#sendemaillink").attr("href","mailto:?subject=Locatie&body=" + encodeURIComponent(embedLink));
+
+
+	// TODO: load jQuery in script as well?
+	// basepath: for loading dynamically
+	// TODO: use document.location.href?
+	var basepath = "http://nieuwsinkaart.nl/pdok/kaart/";
+
+	var code = '<script src="'+basepath+'api/OpenLayers.js"></script>';
+	code += '<script src="'+basepath+'api/lusc-api.js"></script>'
+    code += '<script src="'+basepath+'js/jquery.js"></script>';
+    code += '<link rel="stylesheet" href="'+basepath+'api/styles/default/style.css" type="text/css">';
+    code += '<link rel="stylesheet" href="'+basepath+'api/style.css" type="text/css">';
+	code +='    <script>';
+	code +='    function init() {';
+	code +='        var api = new Lusc.Api({';
+	code +='		    loc: ['+ mapPDOKKaart.getCenter().lon +','+ mapPDOKKaart.getCenter().lat +'],';
+	// TODO: if a layer is added, include this
+	// code +='		    layer: \'AAN\',';
+	if (activeFeature && markers.features.length > 0 && $("#showmarker").is(':checked')) {
+		code +='		    mloc: ['+activeFeature.geometry.x+','+activeFeature.geometry.y+'],';
+		code +='		    externalGraphic: \'http://www.nationaalgeoregister.nl/geonetwork/images/logos/geonovum.jpg\',';		
+		code +='		    pointRadius: 20,';
+		code +='		    titel: \'' + activeFeature.attributes.title + '\',';
+		code +='		    tekst: \'' + activeFeature.attributes.description + '\',';
+	}
+	code +='		    zl: '+mapPDOKKaart.getZoom(); // zl always as last, to make sure the comma's are okay
+	code +='		});';
+	code +='    }';
+	code +='    </script>';
+	code +='<div id="map"></div>';
+	code +='<script>init()</script>';
+	
+	$("#scriptcode").val(code);
 
 	return true;
 }

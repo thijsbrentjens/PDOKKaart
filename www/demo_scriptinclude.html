@@ -28,17 +28,17 @@
 		}
 	</script>
 <!-- plak hier de kaart code voor de Head -->
-<script src="http://localhost/js/jquery.js"></script><script src="http://localhost/api/OpenLayers.js"></script><script src="http://localhost/api/javascripts/proj4js-compressed.js"></script><script src="http://luuks.github.com/API/lusc-api.js"></script><script src="http://localhost/js/locationeditor.js"></script><link rel="stylesheet" href="http://localhost/api/styles/default/style.css" type="text/css"><link rel="stylesheet" href="http://localhost/api/style.css" type="text/css"><script>function createPDOKKaart() {  var api = new Lusc.Api({    loc: [182525.12,467408.32],    zl: 4});return api}</script>
+<script src="http://nieuwsinkaart.nl/pdok/kaart/js/jquery.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/api/OpenLayers.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/api/javascripts/proj4js-compressed.js"></script><script src="http://luuks.github.com/API/lusc-api.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/js/locationeditor.js"></script><link rel="stylesheet" href="http://nieuwsinkaart.nl/pdok/kaart/api/styles/default/style.css" type="text/css"><link rel="stylesheet" href="http://nieuwsinkaart.nl/pdok/kaart/api/style.css" type="text/css"><script>function createPDOKKaart() {  var api = new Lusc.Api({    loc: [148710.08,452059.84],    zl: 6});return api}</script>
 
 </head>
 <body>
 <h1>Javascript include voorbeeld, gegenereerde code</h1>
 Deze pagina laat zien hoe via de PDOK Kaart instellingen pagina, de gegenereerde code eruit komt te zien. De afmetingen van de kaart, worden bepaald via CSS.
 
-Met de kaart kan in het formulier een geometrie opgegeven worden. Hier is dat een polygoon.
-De editor is pas actief vanaf inzoomen op niveau 10.
+Met de kaart kan in het formulier een geometrie opgegeven worden. Hier is dat een lijn.
+<b>Nota bene: De editor is pas actief vanaf inzoomen op niveau 10, grofweg op straatniveau.</b>
 <!-- plak hier de kaart code voor de Body -->
-<div id="map"></div><script>var pdokkaart = createPDOKKaart();var options = {geom_id:"geometrie",editorMinZoom:6, editorMaxZoom:13};addLocationEditor(pdokkaart, "line", options);</script>
+<div id="map"></div><script>var pdokkaart = createPDOKKaart();var options = {geom_id:"geometrie",editorMinZoom:10, editorMaxZoom:13};addLocationEditor(pdokkaart, "line", options);</script>
 <!-- eind plakken -->
 
 <form>

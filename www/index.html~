@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <title>PDOK Kaart - Proof of Concept</title>        
-        <link rel="stylesheet" href="css/main.css" type="text/css" />
-		<!-- add Cantarell fonts, for CSS3 -->
-		<link href='http://fonts.googleapis.com/css?family=Cantarell:700italic,700,400italic,400' rel='stylesheet' type='text/css'>
         <!-- link rel="stylesheet" href="js/theme/default/style.css" type="text/css" / -->
         <link rel="stylesheet" href="api/style.css" type="text/css" />
+		<!-- add Cantarell fonts, for CSS3 -->
+		<link href='http://fonts.googleapis.com/css?family=Cantarell:700italic,700,400italic,400' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/main.css" type="text/css" />
         <script src="js/OpenLayers.pdok.js"></script> <!-- was: js/OpenLayers.pdok.js, voor Geozet -->
-        <script src="api/lusc-api.js"></script>
+        <script src="http://luuks.github.com/API/lusc-api.js"></script>
         <script src="js/proj4js-compressed.js"></script>  
         <script src="js/jquery.js"></script>
         <script src="js/map.js"></script>
@@ -27,27 +27,61 @@
 	    <div id="content">
 		    <div id="leftcolumn">
 				<div id="mapfunctions">
-					<h3 id="drawlocationtitle"><button onclick="startDrawingPoint();">Locatie tekenen <img class="defaultmarker" src="js/img/marker.png"></button><button onclick="stopDrawingPoint();" id="cancelDrawingPoint">Annuleren</button></h3>
+					<h3 id="drawlocationtitle"><button onclick="jQuery('.popInWindow').fadeOut('fast');startDrawingPoint()">Locatie tekenen <img class="defaultmarker" src="js/img/marker.png"></button><button onclick="stopDrawingPoint();" id="cancelDrawingPoint">Annuleren</button></h3>
 					<div id="drawlocationhelp" onclick="$(this).fadeOut('fast')" class="popInWindow">
 						<span id="closedrawlocation" onclick="$('#drawlocationhelp').fadeOut('fast')" class="closeWindow"><a href="#" onclick="return false;"><img src="js/theme/default/img/close.gif" alt="Sluiten" title="Sluiten"/></a></span>
 						Klik op de kaart op de gewenste plek om een locatie te tekenen. Voer daarna een titel en omschrijving in. Het punt is nog te verschuiven.
 					</div>
-					<h3 id="permalinktitle"><button onclick="linkToMapOpened(document.location.href);return false;" id="permalink">Kaart delen</button></h3>
+					<h3 id="permalinktitle"><button onclick="jQuery('.popInWindow').fadeOut('fast');linkToMapOpened(document.location.href);return false;" id="permalink">Kaart delen</button></h3>
 					<div id="createlink" class="popInWindow">
 						<span id="closecreatelink" onclick="$('#createlink').hide()" class="closeWindow"><a href="#" onclick="return false;"><img src="js/theme/default/img/close.gif" alt="Sluiten" title="Sluiten"/></a></span>
-						Link losse kaart:<br/><input type="text" value="" id="embedlink" name="embedlink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
+						Link losse kaart:<br/><input type="text" value="" id="embedlink" name="embedlink" size="30" onclick="linkToMapOpened(document.location.href)"/>
+						 <a href="#" id="sendemaillink" onclick="linkToMapOpened(document.location.href)"><img src="img/email.png" alt="Verstuur link per email" title="Verstuur link per email"/></a><br/>
 						Embed HTML iframe:<br/><input type="text" value="" id="embedhtmliframe" name="embedhtmliframe" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
 						Embed HTML Object tag:<br/><input type="text" value="" id="embedhtmlobject" name="embedhtmlobject" size="30" onclick="linkToMapOpened(document.location.href)"/><br/>
-						Email link kaart: <a href="#" id="sendemaillink" onclick="linkToMapOpened(document.location.href)"><img src="img/email.png" alt="Verstuur link per email" title="Verstuur link per email"/></a><br/>
 <!-- Directe link deze kaart:<br/><input type="text" value="" id="emaillink" name="emaillink" size="30" onclick="linkToMapOpened(document.location.href)"/><br/> -->
 						Afmetingen kaart:<br/>
 						<input type="radio" value="small" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> klein <input type="radio" value="medium" name="mapsizechoice" checked="checked" onchange="linkToMapOpened(document.location.href)"/> middel  <input type="radio" value="large" name="mapsizechoice" onchange="linkToMapOpened(document.location.href)"/> groot <br/>
 						<img class="defaultmarker" src="js/img/marker.png">Locatie tonen op kaart: <input type="checkbox" checked="checked" id="showmarker" name="showmarker"/><br/>
-						<div id="createscriptcode"><h3>Broncode include in webpagina:</h3>
+						<div id="createscriptcode"><h4>Broncode include in webpagina:</h4>
 							In de HTML Head-sectie plaatsen:<br/>
 							<textarea id="scriptcodeHead" cols="50" rows="10" onclick="linkToMapOpened(document.location.href)"></textarea></br>							In de HTML Body-sectie plaatsen:<br/>
-							<textarea id="scriptcodeHead" cols="50" rows="10" onclick="linkToMapOpened(document.location.href)"></textarea>
-						</div>												
+							<textarea id="scriptcodeBody" cols="50" rows="2" onclick="linkToMapOpened(document.location.href)"></textarea><br/>
+							<h5>Editor</h5>
+							Editor inschakelen: <input type="checkbox" checked="unchecked" id="enableEditor" name="enableEditor"/><br/>
+							Geometrie voor editor:
+							<select id="editorGeomType">
+								<option value="point" selected="selected">Punt</option>
+								<option value="line">Lijn</option>
+								<option value="polygon">Vlak</option>
+								<option value="bbox">Rechthoek / box</option>
+							</select><br/>
+							Formulier Element ID's:<br/> Voor X: <input type="text" value="x_coordinaat" id="x_coord_element_id" name="x_coord_element_id" size="12"/> en Y:<input type="text" value="y_coordinaat" id="y_coord_element_id" name="y_coord_element_id" size="12"/> OF:<br/>
+							Voor geometrie: <input type="text" value="" id="geometrie_element_id" name="geometrie_element_id" size="12"/><br/>
+							<br/>
+							Editor mogelijk tussen zoomniveaus: <input type="text" value="0" id="minZoomEditor" name="minZoomEditor" size="2"/> en <input type="text" value="13" id="maxZoomEditor" name="maxZoomEditor" size="2"/>
+						</div>						
+					</div>
+					<h3 id="addlayertitle"><button onclick="jQuery('.popInWindow').fadeOut('fast');jQuery('#addlayer').fadeIn('fast')">Laag toevoegen</button></h3>
+					<div id="addlayer" class="popInWindow">
+						<span id="closeaddlayer" onclick="$('#addlayer').fadeOut('fast')" class="closeWindow"><a href="#" onclick="return false;"><img src="js/theme/default/img/close.gif" alt="Sluiten" title="Sluiten"/></a></span>
+						<h4>Voeg een WMS kaartlaag toe</h4>
+						URL van de WMS:<br/>
+						<input type="text" id="wmsUrl" size="30"/></br>
+						Laagnaam van de WMS:<br/>
+						<input type="text" id="wmsLayer" size="30"/></br>
+						<button onclick="addWmsLayer()">Voeg toe aan kaart</button>
+						<h4>Voeg een TMS kaartlaag toe</h4>
+						URL van de TMS:<br/>
+						<input type="text" id="tmsUrl" size="30"/></br>
+						Laagnaam van de TMS:<br/>
+						<input type="text" id="tmsLayer" size="30"/></br>
+						<button onclick="addTmsLayer()">Voeg toe aan kaart</button>
+						<h4>Voeg een PDOK kaartlaag toe</h4>
+						<select id="pdokLayerSelector" onselect="addPdokLayer(this.value)">
+							<option value="-">-- Kies een PDOK kaartlaag --</option>
+						</select><br/>
+						NB: de PDOK laag is niet gelijk te zien in deze kaart, wel via kaarten gemaakt met Kaart delen
 					</div>
 				</div>
 				<p id="searchResults">

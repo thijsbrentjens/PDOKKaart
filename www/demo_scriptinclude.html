@@ -5,7 +5,7 @@
     <style type="text/css">
       #map {
           width: 50%;
-          height: 80%;
+          height: 400px;
       }
       </style>
 
@@ -15,6 +15,7 @@
 			navigator.geolocation.getCurrentPosition(showLocation);			
 		}
 		function showLocation(position){
+
 			var lat = position.coords.latitude;
 			var lon = position.coords.longitude;
 			// Thijs: en hier pakken we de PDOK Kaart erbij via de API.	
@@ -27,16 +28,27 @@
 		}
 	</script>
 <!-- plak hier de kaart code voor de Head -->
-<script src="http://nieuwsinkaart.nl/pdok/kaart/api/OpenLayers.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/api/javascripts/proj4js-compressed.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/api/lusc-api.js"></script><script src="http://nieuwsinkaart.nl/pdok/kaart/js/jquery.js"></script><link rel="stylesheet" href="http://nieuwsinkaart.nl/pdok/kaart/api/styles/default/style.css" type="text/css"><link rel="stylesheet" href="http://nieuwsinkaart.nl/pdok/kaart/api/style.css" type="text/css">    <script>    function createPDOKKaart() {        var api = new Lusc.Api({		    loc: [168171.2,415469.44],		    layer: 'AAN',		    mloc: [168587.84,415415.68],		    externalGraphic: 'http://nieuwsinkaart.nl/pdok/kaart/api/markertypes/information_blue.png',		    pointRadius: 20,		    titel: 'Title en zo',		    tekst: 'Een omschrijving bij de marker',		    zl: 9		});		return api    }    </script>
-
+<script src="http://localhost/js/jquery.js"></script><script src="http://localhost/api/OpenLayers.js"></script><script src="http://localhost/api/javascripts/proj4js-compressed.js"></script><script src="http://luuks.github.com/API/lusc-api.js"></script><script src="http://localhost/js/locationeditor.js"></script><link rel="stylesheet" href="http://localhost/api/styles/default/style.css" type="text/css"><link rel="stylesheet" href="http://localhost/api/style.css" type="text/css"><script>function createPDOKKaart() {  var api = new Lusc.Api({    loc: [182525.12,467408.32],    zl: 4});return api}</script>
 
 </head>
 <body>
 <h1>Javascript include voorbeeld, gegenereerde code</h1>
-Deze pagina laat zien hoe via de PDOK Kaart instellingen pagina, de gegenereerde code eruit komt te zien. De afmetingen van de kaart, worden bepaald via CSS. De kaart komt er als volgt uit:
+Deze pagina laat zien hoe via de PDOK Kaart instellingen pagina, de gegenereerde code eruit komt te zien. De afmetingen van de kaart, worden bepaald via CSS.
 
+Met de kaart kan in het formulier een geometrie opgegeven worden. Hier is dat een polygoon.
+De editor is pas actief vanaf inzoomen op niveau 10.
 <!-- plak hier de kaart code voor de Body -->
-<div id="map"></div><script>var pdokkaart = createPDOKKaart();customInit()</script>
+<div id="map"></div><script>var pdokkaart = createPDOKKaart();var options = {geom_id:"geometrie",editorMinZoom:6, editorMaxZoom:13};addLocationEditor(pdokkaart, "line", options);</script>
+<!-- eind plakken -->
+
+<form>
+	Titel webformulier: <input id="demotitel" name="demotitel" type="text" value="Geef titel op" /><br />
+	Eventueel met andere velden. En met:<br />
+	X in RD: <input id="x_coordinaat" name="x_coordinaat" type="text" /> , Y in RD: <input id="y_coordinaat" name="y_coordinaat" type="text" /> of<br />
+	Geometrie: <input id="geometrie" name="geometrie" type="text" size="100"/>&nbsp;</form>
+
+<!-- customInit() -->
+<script>customInit()</script>
 
 </body>
 </html>

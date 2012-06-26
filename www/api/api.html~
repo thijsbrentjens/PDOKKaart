@@ -30,7 +30,7 @@
     </style>
     
     <script src="./OpenLayers.js"></script>
-	<script src="http://luuks.github.com/API/lusc-api.js"></script>
+	<script src="lusc-api.js"></script>
     <script>
     
     function init() {

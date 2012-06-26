@@ -1,10 +1,10 @@
-var mapPDOKKaart, markers, activeFeature, dragControl, drawControl;
+var mapPDOKKaart, markers, activeFeature, dragControl, drawControl, layerSwitcher;
 var pdokachtergrondkaart;
 
 // TODO: make config object, with anonymous function
 OpenLayers.ProxyHost = "../xmldata.php?url=";
 
-Proj4js.defs["EPSG:28992"] = "+title=Amersfoort / RD New +proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +no_defs"; 
+Proj4js.defs["EPSG:28992"] = "+title=Amersfoort / RD New +proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +no_defs";
 
 var defaultmarkerpath = "markertypes/information_blue.png"; // js/img/marker.png
 
@@ -25,8 +25,9 @@ function init()
 		mapPDOKKaart = lusc.getMapObject();
 	
 		// Thijs: markers are used to show Geocoderesults
-		markers = new OpenLayers.Layer.Vector("Geocoderesults",{
-                styleMap: getStyleMap()            
+		markers = new OpenLayers.Layer.Vector("Markers",{
+                styleMap: getStyleMap(),
+                displayInLayerSwitcher: false
             });
 		// add popup functions for geocoding results
 		/* */
@@ -103,10 +104,13 @@ function init()
 			   return false;
 		}
 
+		layerSwitcher = new OpenLayers.Control.LayerSwitcher()
+		
 		controls = [
 			new OpenLayers.Control.MousePosition()
 			, dragControl
 			, drawControl
+			, layerSwitcher
 			// , new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
 			, touchNav
 		]
@@ -166,7 +170,11 @@ function init()
 		if (!mapPDOKKaart.getCenter()) {
 		 	mapPDOKKaart.setCenter(new OpenLayers.LonLat(155000,463000), 3);
 		}	
-
+		
+		var pdokLayers = lusc.getLayers();
+		for (var l in pdokLayers) {
+			$("#pdokLayerSelector").append("<option value='"+pdokLayers[l]+"'>"+pdokLayers[l]+"</option>");
+		}
     }
 }
 
@@ -399,32 +407,90 @@ function handleGeocodeResponse(req, returnCoords){
     return false;
 }
 
+function addWmsLayer() {
+	var layername=$('#wmsLayer').val();
+	var layerUrl=$('#wmsUrl').val().replace("request=GetCapabilities","","i") // remove the request=GetCapabilities (case insensitive) part if provided;
+	$('#tmsLayer').val("");
+	$('#tmsUrl').val("");
+	
+	var wmsLayer = new OpenLayers.Layer.WMS(
+							layername, // layername as title for now
+							layerUrl,
+							{layers: layername, transparent: 'true',format: "image/png"},
+							{visibility: true, isBaseLayer:false, opacity: 0.8},
+							{singleTile: true}
+	);
+	addOverlay(wmsLayer)
+}
+
+function addTmsLayer() {
+	var layername=$('#tmsLayer').val();
+	var layerUrl=$('#tmsUrl').val();
+	$('#wmsLayer').val("");
+	$('#wmsUrl').val("");
+	var tmsLayer = new OpenLayers.Layer.TMS(
+			layername,
+			layerUrl,
+			{layername: layername, type:"png", visibility: true, isBaseLayer:false, opacity:0.8}
+		);
+	addOverlay(tmsLayer);
+}
+
+function addPdokLayer(pdokLayerName) {
+	// var layername=$('#tmsLayer').val();
+	// TODO: add layer to map, need API function for this --> Luuk
+	
+}
+
+function addOverlay(layer) {
+	// remove all WMS and TMS layers (if not basemap)
+	for (var lr in mapPDOKKaart.layers) {
+		var l = mapPDOKKaart.layers[lr];
+		if (l.name!="Markers" && l.isBaseLayer == false) { // not Geocoderesults or markers?
+			mapPDOKKaart.removeLayer(l);
+		}
+	}
+	$("#pdokLayerSelector").val("-");
+	layerSwitcher.maximizeControl();
+	mapPDOKKaart.addLayer(layer);
+}
+
 function linkToMapOpened(permalink){
-	// Thijs: TODO: change the permalink URL: add params, create a function for that.
-	/* ** API params to use:
-	loc = x,y
-	zl = zoomlevel
-	marker = x,y
-	<pm>	
-	*/
 	if (!permalink) permalink = document.location.href;
-	$('#drawlocation').hide();	
+	// $('#drawlocation').hide();	
 	$('#createlink').fadeIn();
+		
 	// add the parameters, serialize them just explicitly now.
 	var apiParams = "&loc=" + mapPDOKKaart.getCenter().lon + "," +mapPDOKKaart.getCenter().lat;
 	apiParams += "&zl=" + mapPDOKKaart.getZoom();
 
 	// Only add a marker for the last active feature
-	
-	// TODO: always add the marker? or only if a checkbox is checked?
-	// TODO: check if activeFeature still exists
 	if (activeFeature && markers.features.length > 0 && $("#showmarker").is(':checked')) {
 		apiParams+="&mloc="+activeFeature.geometry.x+","+activeFeature.geometry.y+"&mt=2"+"&titel="+encodeURIComponent(activeFeature.attributes.title)+"&tekst="+encodeURIComponent(activeFeature.attributes.description);
 	}
-	
-	// TODO: add a WMS layer, by adding a WMS URL, Layer Name and title
-	// TODO: check URL length
-	
+
+	var codeHeadLayer = '';
+	for (var lr in mapPDOKKaart.layers) {
+		var l = mapPDOKKaart.layers[lr];
+		if ($('#pdokLayerSelector').val() != "-") {
+				apiParams+="&layer="+$('#pdokLayerSelector').val();
+				codeHeadLayer = '	layer: \'' + $('#pdokLayerSelector').val() + '\',';
+				break;
+		} else {
+			if (l.name!="Markers" && l.isBaseLayer == false && l.getVisibility()) { // add one overlay to the map, only if it is visible now
+				if (l.CLASS_NAME == "OpenLayers.Layer.WMS" && $('#pdokLayerSelector').val() == "-") {
+					apiParams+="&wmsurl=" + encodeURIComponent(l.url) + "&wmslayers=" + encodeURIComponent(l.params.LAYERS);
+					codeHeadLayer = '	wmsurl: \'' + l.url + '\',';
+					codeHeadLayer += '	wmslayers: \'' + l.params.LAYERS + '\',';
+				}
+				if (l.CLASS_NAME == "OpenLayers.Layer.TMS" && $('#pdokLayerSelector').val() == "-") {
+					apiParams+="&tmsurl=" + encodeURIComponent(l.url) + "&tmslayer=" + encodeURIComponent(l.layername);
+					codeHeadLayer = '	tmsurl: \'' + l.url + '\',';
+					codeHeadLayer += '	tmslayer: \'' + l.layername + '\',';
+				}
+			}
+		}
+	}
 
 	permalink = permalink.replace("#","?");
 	permalink = permalink.split("?")[0];
@@ -445,7 +511,6 @@ function linkToMapOpened(permalink){
 	// construct the URL, make sure the correct page is used
     var embedLink = permalink.replace("/?","/api/api.html?");
     embedLink = embedLink.replace("/index.html?","/api/api.html?");
-
 	//var embedLink = permalink.("index.html")[0] + "api/api.html?" + apiParams;
 	
 	var embedHtmlIframe = "<iframe width='"+mapW+"' height='"+mapH+"' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' src='"+embedLink+"' title='PDOK Kaart'></iframe><br /><small>PDOK Kaart: <a href='"+permalink+"' style='color:#0000FF;text-align:left'>Grotere kaart weergeven</a></small>"
@@ -461,60 +526,57 @@ function linkToMapOpened(permalink){
 
 	$("#sendemaillink").attr("href","mailto:?subject=Locatie&body=" + encodeURIComponent(embedLink));
 
+	// basepath: for loading scripts from other location	
+	var basepath = document.location.href.split("index.html")[0];
 
-	// TODO: load jQuery in script as well?
-	// basepath: for loading dynamically
-	// TODO: use document.location.href?
-	var basepath = "http://nieuwsinkaart.nl/pdok/kaart/";
-
-	var codeHead = '<script src="'+basepath+'api/OpenLayers.js"></script>';
+    var codeHead = '<script src="'+basepath+'js/jquery.js"></script>';
+	// load scripts dynamically?
+	// codeHead += '<script src="'+basepath+'js/loadjs.js"></script>';
+	codeHead += '<script src="'+basepath+'api/OpenLayers.js"></script>';
     codeHead +='<script src="'+basepath+'api/javascripts/proj4js-compressed.js"></script>';
-	codeHead +='<script src="'+basepath+'api/lusc-api.js"></script>';
-    codeHead +='<script src="'+basepath+'js/jquery.js"></script>';
+	// codeHead +='<script src="'+basepath+'api/lusc-api.js"></script>';
+	codeHead +='<script src="http://luuks.github.com/API/lusc-api.js"></script>';
+	codeHead +='<script src="'+basepath+'js/locationeditor.js"></script>';
+
     codeHead +='<link rel="stylesheet" href="'+basepath+'api/styles/default/style.css" type="text/css">';
     codeHead +='<link rel="stylesheet" href="'+basepath+'api/style.css" type="text/css">';
-	codeHead +='    <script>';
-	/*
-	// load CSS dynamically: note, this does not work properly in IE8
-	codeHead +='    jQuery("head").append("<link>");';
-    codeHead +='    css = jQuery("head").children(":last");';
-    codeHead +='    css.attr({ ';
-    codeHead +='      rel:  "stylesheet",';
-    codeHead +='      type: "text/css",';
-    codeHead +='      href: "'+basepath+'api/styles/default/style.css"';
-    codeHead +='     });';
-	
-	codeHead +='    jQuery("head").append("<link>");';
-    codeHead +='    css = jquery("head").children(":last");';
-    codeHead +='    css.attr({ ';
-    codeHead +='      rel:  "stylesheet",';
-    codeHead +='      type: "text/css",';
-    codeHead +='      href: "'+basepath+'api/style.css"';
-    codeHead +='     });';
-    */
-	codeHead +='    function createPDOKKaart() {';
-	codeHead +='        var api = new Lusc.Api({';
-	codeHead +='		    loc: ['+ mapPDOKKaart.getCenter().lon +','+ mapPDOKKaart.getCenter().lat +'],';
+	codeHead +='<script>';
+
+	codeHead +='function createPDOKKaart() {';
+	codeHead +='  var api = new Lusc.Api({';
+	codeHead +='    loc: ['+ mapPDOKKaart.getCenter().lon +','+ mapPDOKKaart.getCenter().lat +'],';
 	// TODO: if a layer is added by WMS or by the PDOK list, include this
 	// For the demo, now add a WMS layer
-	codeHead +='		    layer: \'AAN\',';
 	if (activeFeature && markers.features.length > 0 && $("#showmarker").is(':checked')) {
-		codeHead +='		    mloc: ['+activeFeature.geometry.x+','+activeFeature.geometry.y+'],';
-		codeHead +='		    externalGraphic: \'http://nieuwsinkaart.nl/pdok/kaart/api/markertypes/information_blue.png\',';		
-		codeHead +='		    pointRadius: 20,';
-		codeHead +='		    titel: \'' + activeFeature.attributes.title + '\',';
-		codeHead +='		    tekst: \'' + activeFeature.attributes.description + '\',';
+		codeHead +='    mloc: ['+activeFeature.geometry.x+','+activeFeature.geometry.y+'],';
+		codeHead +='    externalGraphic: \'http://nieuwsinkaart.nl/pdok/kaart/api/markertypes/information_blue.png\',';		
+		codeHead +='    pointRadius: 20,';
+		codeHead +='    titel: \'' + activeFeature.attributes.title + '\',';
+		codeHead +='    tekst: \'' + activeFeature.attributes.description + '\',';
 	}
-	codeHead +='		    zl: '+mapPDOKKaart.getZoom(); // zl always as last, to make sure the comma's are okay
-	codeHead +='		});';
-	codeHead +='		return api';
-	codeHead +='    }';
-	codeHead +='    </script>';
-	
+	codeHead += codeHeadLayer;
+	// end, zl always as last, to make sure the comma's are okay
+	codeHead +='    zl: '+mapPDOKKaart.getZoom();
+	codeHead +='});';
+	codeHead +='return api';
+	codeHead +='}';
+	codeHead +='</script>';
 	
 	var codeBody ='<div id="map"></div>';
-	codeBody +='<script>var pdokkaart = createPDOKKaart();</script>';
-	
+	codeBody +='<script>var pdokkaart = createPDOKKaart();';
+	if ($("#enableEditor").is(':checked')) {
+		codeBody += 'var options = {';
+		if ($("#geometrie_element_id").val().length > 0) {
+			codeBody += 'geom_id:"'+ $("#geometrie_element_id").val() + '",';			
+		} else {
+			codeBody += 'x_id:"'+ $("#x_coord_element_id").val() +'", y_id:"'+ $("#y_coord_element_id").val() +'",';
+		}
+		// var options = {x_id: "pdok_x_coordinaat", y_id:"pdok_y_coordinaat", geom_id: "pdok_geometrie", editorMinZoom: 10, editorMaxZoom: 14};
+		codeBody += 'editorMinZoom:'+ $("#minZoomEditor").val() +', editorMaxZoom:'+ $("#maxZoomEditor").val();
+		codeBody += '};';
+		codeBody += 'addLocationEditor(pdokkaart, "'+$("#editorGeomType").val()+'", options);'
+	}
+	codeBody +='</script>';
 	$("#scriptcodeHead").val(codeHead);
 	$("#scriptcodeBody").val(codeBody);
 	

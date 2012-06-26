@@ -1,4 +1,3 @@
-
 body
 {
     background-color: #FFFFFF;
@@ -98,7 +97,6 @@ body
     /* border-bottom: solid 1px grey; */
 }
 
-
 .openurl{
     border: 1px solid #0085C6;
     background-color: #A0E5FF;
@@ -163,11 +161,17 @@ li
 	color: white;
 	border: 1px solid #909090;	
 	padding: 5px;
+	overflow-y: auto;
 }
 
+.popInWindow h4 {
+	margin: 0px;
+	margin-top: 8px;
+}
 
-#drawlocationtitle {
-	text-align: right;
+.olControlLayerSwitcher .layersDiv {
+	background-color: #303030;
+	color: white;
 }
 
 #drawlocationhelp {
@@ -186,13 +190,24 @@ li
 	display: none;
 	position: absolute;
 	left: 350px;
-	top: 80px;
-	width: 400px;
+	top: 0px;
+	width: 420px;
+	height: 550px;
 }
 
 #createlink input {
 	font-size: 0.9em;
 }
+
+#addlayer {
+	display: none;
+	position: absolute;
+	left: 350px;
+	top: 0px;
+	width: 420px;
+	height: 500px;
+}
+
 .geozetSuggestions li a span{
 	display: none;
 }
@@ -201,9 +216,10 @@ li
 	background: url(../markertypes/information_blue.png) no-repeat 0px;
 }
 
-#permalinktitle {
+#mapfunctions h3 {
 	margin: 3px;
 	text-align: right;
+	padding-top:10px;
 }
 
 .closeWindow {

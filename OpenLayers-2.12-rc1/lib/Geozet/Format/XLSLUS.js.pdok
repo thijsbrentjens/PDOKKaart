@@ -19,6 +19,11 @@
  * Inherits from:
  *  - <OpenLayers.Format.XML>
  */
+
+// Thijs Brentjens: instatntionate Namespace here, a bit hacky, but this is only intended for the PDOK Maps Proof of Concept
+Geozet = {};
+Geozet.Format = {};
+ 
 Geozet.Format.XLSLUS = OpenLayers.Class(OpenLayers.Format.XML, {
     
     /**
@@ -124,7 +129,7 @@ Geozet.Format.XLSLUS = OpenLayers.Class(OpenLayers.Format.XML, {
      *          property named "features", being an array of
      *          <OpenLayers.Features.Vector>. Each feature has a geometry
      *          and in the attributes an attribute named "address", being
-     *          an <Geozet.Format.XLSAddress>.
+     *          an <OpenLayers.Format.XLSAddress>.
      *          For a ReverseGeocodeResponse, an array (representing the
      *          reverseGeocodedLocation) of features (each feature as above).
      */

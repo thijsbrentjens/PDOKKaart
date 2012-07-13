@@ -124,7 +124,6 @@ function init()
 	// delegate..
 
 	$('#searchResults').delegate('li/a','click', function (evt) {
-		// console.log("klik " + $("span.hash", this).text())
 		var hash = $("span.hash", this).text();
 		var x = $("span.x", this).text();
 		var y = $("span.y", this).text();
@@ -132,11 +131,9 @@ function init()
 		var ft_id = $("span.ft_id", this).text();
 		if(x && y){
 			mapPDOKKaart.setCenter(new OpenLayers.LonLat(x, y), z);
-			// TODO: remove all markers, only add this feature?
 			var ft = markers.getFeatureById(ft_id);
 		    onFeatureSelect(ft, true, markersPopupText(ft, true)); // full=true
 		    ft.popupFix = true;
-			// $('#geozetStart').remove();
 		}
 		else {
 			alert("fout met coordinaten");
@@ -146,7 +143,6 @@ function init()
 	
 	
 	$('#searchResults').delegate('li/a','mouseover', function (evt) {
-		// activeFeature = null;
 		var hash = $("span.hash", this).text();
 		var x = $("span.x", this).text();
 		var y = $("span.y", this).text();
@@ -182,11 +178,10 @@ function init()
 }
 
 function startDrawingPoint() {
-	// before adding, remove all existing markers?
+	// before adding, remove all existing markers
     removePopups(markers);
     markers.destroyFeatures();
     $('#searchResults').html('')
-	// $('#createlink').hide();
 	$("#drawlocationhelp").fadeIn();
 	$("#cancelDrawingPoint").fadeIn();
 	dragControl.activate();
@@ -200,7 +195,6 @@ function stopDrawingPoint() {
 	drawControl.deactivate();
 	$("#cancelDrawingPoint").fadeOut();	
 	$("#drawlocationhelp").fadeOut();	
-	// dragControl.de activate();
 }
 
 /****

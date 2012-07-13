@@ -1,12 +1,19 @@
+// TODO (after PoC): improve object handling and classes, but works for now :)
+// So make config object, with anonymous function, proper getters/setters etc
+
 var mapPDOKKaart, markers, activeFeature, dragControl, drawControl, layerSwitcher;
 var pdokachtergrondkaart;
 
-// TODO: make config object, with anonymous function
+// The proxyhost is needed for the geocoder
 OpenLayers.ProxyHost = "../xmldata.php?url=";
 
+// Include the RD definition
 Proj4js.defs["EPSG:28992"] = "+title=Amersfoort / RD New +proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +no_defs";
 
-var defaultmarkerpath = "markertypes/information_blue.png"; // js/img/marker.png
+// Use the same marker at several places in the settingspage, change the defaultmarkerpath to use a different one
+var defaultmarkerpath = "markertypes/information_blue.png";
+
+// init is called after loading the settings page and initilizes the map and some GUI components, like the PDOK map layer selector and the "popin" windows
 
 function init()
 {
@@ -15,179 +22,163 @@ function init()
 	$(window).resize(setMapSize);
 	$(".defaultmarker").attr("src",defaultmarkerpath);
 
-	if(jQuery("#map").length>0){
+	// initiate the Lusc API object
+	var o = OpenLayers.Util.getParameters();
+    var lusc = new Lusc.Api(o);
 
-    	var o = OpenLayers.Util.getParameters();
-		// add the zoomlevel
-	    var lusc = new Lusc.Api(o);
+	// for convenience reasons to reuse the OpenLayers Map object from the API, set it to a global object
+	mapPDOKKaart = lusc.getMapObject();
 
-	    // Thijs, TODO: improve object handling and classes, but works for now :)
-		mapPDOKKaart = lusc.getMapObject();
-	
-		// Thijs: markers are used to show Geocoderesults
-		markers = new OpenLayers.Layer.Vector("Markers",{
-                styleMap: getStyleMap(),
-                displayInLayerSwitcher: false
-            });
-		// add popup functions for geocoding results
-		/* */
-		markers.events.register("mouseover", markers, function(e) {
-			this.div.style.cursor = "pointer";
-			var feature = this.getFeatureFromEvent(e);
-		    
-			if (feature) {
-                if(feature.cluster) {
-                   // do something                   
-                }
-			    // add a popup
-			    onFeatureSelect(feature, false, markersPopupText(feature, false));
-		        feature.popupFix = false;
-			}
-		});
+	// Thijs: a vector layer is used to show Geocoderesults
+	markers = new OpenLayers.Layer.Vector("Markers",{
+            styleMap: getStyleMap(),
+            displayInLayerSwitcher: false
+        });
 
-		markers.events.register("mouseout", markers, function(e) {
-			this.div.style.cursor = "default";
-			var feature = this.getFeatureFromEvent(e);
-			if (feature) {
-			   // add a popup
-			   // onFeatureSelect(feature);
-			   if (!feature.popupFix) {
-				onPopupClose(null, feature);
-			   }
-			}
-		}); 
-
-		markers.events.register("click", markers, function(e) {
-			this.div.style.cursor = "default";
-			var feature = this.getFeatureFromEvent(e);
-			if (feature) {
-			   // add a popup
-			   onFeatureSelect(feature, true, markersPopupText(feature, true)); // full=true
-			   feature.popupFix = true;			   
-			}
-		});
-
-		markers.events.register("touchend", markers, function(e) {
-			this.div.style.cursor = "default";
-			var feature = this.getFeatureFromEvent(e);
-			if (feature) {
-			   // add a popup
-			   onFeatureSelect(feature, true, markersPopupText(feature, true)); // full=true
-			   feature.popupFix = true;
-			} else {
-			    return true;
-			}	
-		});
-		
-		// mapPDOKKaart.addLayers([pdokachtergrondkaart, markers]);
-		// for Lusc API
-		mapPDOKKaart.addLayers([markers]);
-
-        // TouchNavigation
-        /* */
-		var touchNav = new OpenLayers.Control.TouchNavigation({
-                dragPanOptions: {
-                    enableKinetic: true
-                }
-            })
-		
-		dragControl = new OpenLayers.Control.DragFeature(markers);
-		drawControl = new OpenLayers.Control.DrawFeature(markers, OpenLayers.Handler.Point);
-		
-		drawControl.featureAdded = function(feature){
-			   feature.attributes.title="Voer een titel in:";
-			   feature.attributes.description="Voer een omschrijving in:";
-			   startFeatureEdit(feature.id);
-			   stopDrawingPoint();
-			   onFeatureSelect(feature, true, markersPopupText(feature, true)); // full=true
-			   feature.popupFix = true;
-			   return false;
+	// add popup functions for geocoding results
+	/* */
+	markers.events.register("mouseover", markers, function(e) {
+		this.div.style.cursor = "pointer";
+		var feature = this.getFeatureFromEvent(e);
+	    
+		if (feature) {
+		    // add a popup
+		    onFeatureSelect(feature, false, markersPopupText(feature, false));
+	        feature.popupFix = false;
 		}
+	});
 
-		layerSwitcher = new OpenLayers.Control.LayerSwitcher()
-		
-		controls = [
-			new OpenLayers.Control.MousePosition()
-			, dragControl
-			, drawControl
-			, layerSwitcher
-			// , new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
-			, touchNav
-		]
-	
-		// for the future upcoming searchresults
-		// attach click to the li-suggestions (if available)
-		// delegate..
-	
-		$('#searchResults').delegate('li/a','click', function (evt) {
-			// console.log("klik " + $("span.hash", this).text())
-			var hash = $("span.hash", this).text();
-			var x = $("span.x", this).text();
-			var y = $("span.y", this).text();
-			var z = $("span.z", this).text();
-			var ft_id = $("span.ft_id", this).text();
-			if(x && y){
-				mapPDOKKaart.setCenter(new OpenLayers.LonLat(x, y), z);
-				// TODO: remove all markers, only add this feature?
-				var ft = markers.getFeatureById(ft_id);
-			    onFeatureSelect(ft, true, markersPopupText(ft, true)); // full=true
-			    ft.popupFix = true;
-				// $('#geozetStart').remove();
-			}
-			else {
-				alert("fout met coordinaten");
-			}
-			return false;
-		});
-		
-		
-		$('#searchResults').delegate('li/a','mouseover', function (evt) {
-			// activeFeature = null;
-			var hash = $("span.hash", this).text();
-			var x = $("span.x", this).text();
-			var y = $("span.y", this).text();
-			var z = $("span.z", this).text();
-			var ft_id = $("span.ft_id", this).text();
-			if(x && y){
-				var ft = markers.getFeatureById(ft_id);
-			    onFeatureSelect(ft, false, markersPopupText(ft, false)); // full=true
-			}
-			else {
-				alert("fout met coordinaten");
-			}
-			return false;
-		});
-		$('#searchResults').delegate('li/a','mouseout', function (evt) {
-			// removePopups(markers);			
-			return false;
-		});
-		
-		mapPDOKKaart.addControls(controls);
+	markers.events.register("mouseout", markers, function(e) {
+		this.div.style.cursor = "default";
+		var feature = this.getFeatureFromEvent(e);
+		if (feature) {
+		   // add a popup
+		   // onFeatureSelect(feature);
+		   if (!feature.popupFix) {
+			onPopupClose(null, feature);
+		   }
+		}
+	}); 
 
-		dragControl.activate();
-		
-		// only set the map center if not already done by lusc api
-		if (!mapPDOKKaart.getCenter()) {
-		 	mapPDOKKaart.setCenter(new OpenLayers.LonLat(155000,463000), 3);
+	markers.events.register("click", markers, function(e) {
+		this.div.style.cursor = "default";
+		var feature = this.getFeatureFromEvent(e);
+		if (feature) {
+		   // add a popup
+		   onFeatureSelect(feature, true, markersPopupText(feature, true)); // full=true
+		   feature.popupFix = true;			   
+		}
+	});
+
+	markers.events.register("touchend", markers, function(e) {
+		this.div.style.cursor = "default";
+		var feature = this.getFeatureFromEvent(e);
+		if (feature) {
+		   // add a popup
+		   onFeatureSelect(feature, true, markersPopupText(feature, true)); // full=true
+		   feature.popupFix = true;
+		} else {
+		    return true;
 		}	
-		
-		var pdokLayers = lusc.getLayers();
-		for (var l in pdokLayers) {
-			$("#pdokLayerSelector").append("<option value='"+pdokLayers[l]+"'>"+pdokLayers[l]+"</option>");
+	});
+	
+	// add the markers
+	mapPDOKKaart.addLayers([markers]);
+
+    // TouchNavigation
+    /* */
+	var touchNav = new OpenLayers.Control.TouchNavigation({
+            dragPanOptions: {
+                enableKinetic: true
+            }
+        })
+	
+	// controls for the redlining objects (locatieprikker)
+	dragControl = new OpenLayers.Control.DragFeature(markers);
+	drawControl = new OpenLayers.Control.DrawFeature(markers, OpenLayers.Handler.Point);
+	
+	drawControl.featureAdded = function(feature){
+		   feature.attributes.title="Voer een titel in:";
+		   feature.attributes.description="Voer een omschrijving in:";
+		   startFeatureEdit(feature.id);
+		   stopDrawingPoint();
+		   onFeatureSelect(feature, true, markersPopupText(feature, true)); // full=true
+		   feature.popupFix = true;
+		   return false;
+	}
+	
+	// use a global object for the layersitcher, to open/close it pogrammatically
+	layerSwitcher = new OpenLayers.Control.LayerSwitcher()
+	
+	controls = [
+		new OpenLayers.Control.MousePosition()
+		, dragControl
+		, drawControl
+		, layerSwitcher
+		// , new OpenLayers.Control.KeyboardDefaults() // don't use KeyboardDefaults, since this may interfere with other functionality on a page
+		, touchNav
+	]
+
+	// for the future upcoming searchresults
+	// attach click to the li-suggestions (if available)
+	// delegate..
+
+	$('#searchResults').delegate('li/a','click', function (evt) {
+		// console.log("klik " + $("span.hash", this).text())
+		var hash = $("span.hash", this).text();
+		var x = $("span.x", this).text();
+		var y = $("span.y", this).text();
+		var z = $("span.z", this).text();
+		var ft_id = $("span.ft_id", this).text();
+		if(x && y){
+			mapPDOKKaart.setCenter(new OpenLayers.LonLat(x, y), z);
+			// TODO: remove all markers, only add this feature?
+			var ft = markers.getFeatureById(ft_id);
+		    onFeatureSelect(ft, true, markersPopupText(ft, true)); // full=true
+		    ft.popupFix = true;
+			// $('#geozetStart').remove();
 		}
-    }
-}
-
-function startDrag () {
+		else {
+			alert("fout met coordinaten");
+		}
+		return false;
+	});
 	
-}
-
-function doDrag () {
 	
-}
-
-function endDrag () {
+	$('#searchResults').delegate('li/a','mouseover', function (evt) {
+		// activeFeature = null;
+		var hash = $("span.hash", this).text();
+		var x = $("span.x", this).text();
+		var y = $("span.y", this).text();
+		var z = $("span.z", this).text();
+		var ft_id = $("span.ft_id", this).text();
+		if(x && y){
+			var ft = markers.getFeatureById(ft_id);
+		    onFeatureSelect(ft, false, markersPopupText(ft, false)); // full=true
+		}
+		else {
+			alert("fout met coordinaten");
+		}
+		return false;
+	});
+	$('#searchResults').delegate('li/a','mouseout', function (evt) {
+		// removePopups(markers);			
+		return false;
+	});
 	
+	mapPDOKKaart.addControls(controls);
+
+	dragControl.activate();
+	
+	// only set the map center if not already done by lusc api
+	if (!mapPDOKKaart.getCenter()) {
+	 	mapPDOKKaart.setCenter(new OpenLayers.LonLat(155000,463000), 3);
+	}	
+	
+	var pdokLayers = lusc.getLayers();
+	for (var l in pdokLayers) {
+		$("#pdokLayerSelector").append("<option value='"+pdokLayers[l]+"'>"+pdokLayers[l]+"</option>");
+	}
 }
 
 function startDrawingPoint() {
@@ -437,9 +428,7 @@ function addTmsLayer() {
 }
 
 function addPdokLayer(pdokLayerName) {
-	// var layername=$('#tmsLayer').val();
-	// TODO: add layer to map, need API function for this --> Luuk
-	
+	// TODO: add PDOK layer to map, need API function for this --> not implemented in PoC version of API
 }
 
 function addOverlay(layer) {

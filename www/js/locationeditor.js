@@ -17,6 +17,7 @@ function addLocationEditor(apiObject, geomType, options) {
 		   jQuery("#"+options.y_id).val(Math.round(feature.geometry.y))
 	   } else {
 	   	   // TODO: round all coordinates
+	   	   // TODO: now WKT format, could also be GeoJSON
    		   jQuery("#"+options.geom_id).val(feature.geometry)
 	   }
 	}

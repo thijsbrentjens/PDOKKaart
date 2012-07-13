@@ -65,6 +65,11 @@ Lusc.Api = function(config) {
      * Reference to markertype object
      */
     this.tekst = null;
+
+    /**
+     * Reference to Textfile URL object
+     */
+    this.txturl = null;
     
     /**
      * Reference to WMS-URL object
@@ -75,6 +80,16 @@ Lusc.Api = function(config) {
      * Reference to WMS layer(s) object
      */
     this.wmslayers = null;
+
+    /**
+     * Reference to TMS-URL object
+     */
+    this.tmsurl = null;
+
+    /**
+     * Reference to TMS layer object
+     */
+    this.tmslayer = null;
 
     /**
      * Reference to the DIV-id the map should be rendered in
@@ -95,7 +110,17 @@ Lusc.Api = function(config) {
      * @private
      * Look up array, having the supported layers.
      */
-    this.supportedLayers = ["AAN","AHN25M","GEMEENTEGRENZEN","GEMEENTEGRENZEN_LABEL","NATIONALE_PARKEN","NOK2011","TEXEL_20120423","TEXEL_20120423_OUTLINE"];
+    this.supportedLayers = [
+    	"AAN",
+    	"AHN25M",
+    	"GEMEENTEGRENZEN",
+    	"GEMEENTEGRENZEN_LABEL",
+    	"NATIONALE_PARKEN",
+    	"NOK2011",
+    	"TEXEL_20120423",
+    	"TEXEL_20120423_OUTLINE",
+    	"TOP10NL"
+    ];
 
     /**
      * @private
@@ -197,12 +222,24 @@ Lusc.Api.prototype.validateConfig = function(config) {
         this.tekst = config.tekst;
     }
     
+    if (config.txturl) {
+        this.txturl = config.txturl;
+    }
+    
     if (config.wmsurl) {
         this.wmsurl = config.wmsurl;
     }
 
     if (config.wmslayers) {
         this.wmslayers = config.wmslayers;
+    }
+
+    if (config.tmsurl) {
+        this.tmsurl = config.tmsurl;
+    }
+
+    if (config.tmslayer) {
+        this.tmslayer = config.tmslayer;
     }
 
     if (config.externalGraphic) {
@@ -238,8 +275,44 @@ Lusc.Api.prototype.createOlMap = function() {
         units: 'm',
         projection: new OpenLayers.Projection("EPSG:28992"),
         div: (this.div != null) ? this.div : 'map'
-      });
-    
+    });
+    //var toolListeners = {
+	//	"activate": toolActivate,
+	//	"deactivate": toolDeactivate
+	//};
+	//function toolActivate(event) {
+//Uitzetten van het selecteerbaarmaken van de RESTORE landen
+//selectControl.deactivate();
+//}
+//function toolDeactivate(event) {
+//Aanzetten van het selecteerbaarmaken van de RESTORE landen
+//selectControl.activate();
+//} 
+//	function openLufo(){
+//		alert("Test");
+//	}
+//    var panel = new OpenLayers.Control.Panel();
+//	var openBRT = new OpenLayers.Control({
+//		title:"Toon de BRT Achtergrondkaart als ondergrond",
+//		type: OpenLayers.Control.TYPE_BUTTON,
+//		trigger: openBRT,
+//		displayClass: "openBRT"
+//	});
+//	var openTOP10 = new OpenLayers.Control({
+//		title:"Toon de TOP10NL als ondergrond",
+//		type: OpenLayers.Control.TYPE_BUTTON,
+//		trigger: openTOP10,
+//		displayClass: "openTOP10"
+//	});
+//	var openLufo = new OpenLayers.Control({
+//		title:"Toon de luchtfoto's als ondergrond",
+//		type: OpenLayers.Control.TYPE_BUTTON,
+//		trigger: openLufo,
+//		displayClass: "openLufo"
+//	});
+
+	//panel.addControls([openBRT,openTOP10,openLufo]);
+	//olMap.addControl(panel);
     
     // create TMS
 	lyrBRTAchtergrondkaart = new OpenLayers.Layer.TMS(
@@ -339,6 +412,14 @@ Lusc.Api.prototype.createOlMap = function() {
 					);
 					olMap.addLayer(layer);
 					break;
+				case "TOP10NL":
+					var layer = new OpenLayers.Layer.TMS(
+						"TOP10NL",
+						"http://geodata.nationaalgeoregister.nl/tms/",
+						{layername: "top10nl", type:"png8", visibility: true, isBaseLayer:false}
+					);
+					olMap.addLayer(layer);
+					break;
 				default:
 					//do nothing
 					var layer;
@@ -357,6 +438,22 @@ Lusc.Api.prototype.createOlMap = function() {
 				{singleTile: true}
 		);
         olMap.addLayer(lyrWMS);
+	}
+
+    // apply TMSURL and TMSLAYERS if applicable
+	if ((this.tmsurl != null) && (this.tmslayer != null)) {
+		var layer = new OpenLayers.Layer.TMS(
+			this.tmslayer,
+			this.tmsurl,
+			{layername: this.tmslayer, type:"png", visibility: true, isBaseLayer:false, opacity:0.8}
+		);
+		olMap.addLayer(layer);
+	}
+
+    // apply TXTURL if applicable
+	if (this.txturl != null) {
+		var lyrTextLayer = new OpenLayers.Layer.Text( "Textlayer", {location: this.txturl} );
+		olMap.addLayer(lyrTextLayer);
 	}
 
     // apply BBOX or zoomlevel and location
@@ -426,6 +523,30 @@ Lusc.Api.prototype.getMapObject = function() {
 	return this.map;
 }
 
+Lusc.Api.prototype.addGeometries = function(featurecollection){
+	var geojson_format = new OpenLayers.Format.GeoJSON();
+	var vector_layer = new OpenLayers.Layer.Vector(); 
+	this.map.addLayer(vector_layer);
+	vector_layer.addFeatures(geojson_format.read(featurecollection));
+}
+
+function openBRT(){
+	alert("opeBRT");
+	//replaceCountriesLayer();
+}
+
+function openTOP10(){
+	alert("openTOP10");
+	//replaceCountriesLayer();
+}
+
+function openLufo(){
+	alert("Momenteel zijn er nog geen luchtfoto's beschikbaar bij PDOK");
+}
+
+function replaceCountriesLayer(){
+}
+
 /**
  * Interaction functionality for clicking on the marker
  */
@@ -490,4 +611,82 @@ Lusc.Api.prototype.reprojectWGS84toRD = function(lat,lon){
             new OpenLayers.Projection("EPSG:28992") // new RD
         );
 	return(pointRD);
+}
+
+Lusc.Api.prototype.addMarker = function(mloc,mt,titel,tekst,externalGraphic,pointRadius) {
+    if (mloc != null) {
+	   // Bij een bestaande markerlayer moet de markerfeature een andere icon krijgen
+	   var pntMarkerGeom = new OpenLayers.Geometry.Point(mloc[0],mloc[1]);
+	   var vctMarkerFeat = new OpenLayers.Feature.Vector(pntMarkerGeom);
+       var styObjStyle = {
+			strokeColor : '#ee0028',
+			strokeWidth : 1,
+			strokeOpacity : 1,
+			fillColor : '#ee000d',
+			fillOpacity : 1,
+			pointRadius : 12,
+			externalGraphic: './markertypes/default.png'
+       };
+       var markerStyle = {
+			strokeColor : '#ee0028',
+			strokeWidth : 1,
+			strokeOpacity : 1,
+			fillColor : '#ee000d',
+			fillOpacity : 1,
+			pointRadius : 12
+       };
+       if (mt != null){
+	        if ((mt >= 0) && (mt < this.markers.length)){
+		        styObjStyle.externalGraphic = markerPath + this.markers[parseInt(mt)];
+		        markerStyle.externalGraphic = markerPath + this.markers[parseInt(mt)];
+		    }
+		    else{
+		        styObjStyle.externalGraphic = markerPath + this.markers[0];
+		        markerStyle.externalGraphic = markerPath + this.markers[0];
+		    }
+        }
+        else if (externalGraphic != null){
+        	styObjStyle.externalGraphic = externalGraphic;
+        	markerStyle.externalGraphic = externalGraphic;
+        }
+        if ((pointRadius !=null) && (pointRadius > 0)){
+        	styObjStyle.pointRadius = pointRadius;
+        	markerStyle.pointRadius = pointRadius;
+        }
+        else{
+        	styObjStyle.pointRadius = 12;
+        	markerStyle.pointRadius = 12;
+        }
+        if (this.map.getLayersByClass("OpenLayers.Layer.Vector").length > 0){
+        	var markerLayer = this.map.getLayersByClass("OpenLayers.Layer.Vector")[0];
+        }
+        else{
+	        var markerLayer = new OpenLayers.Layer.Vector('Marker', {
+	            styleMap: new OpenLayers.StyleMap(markerStyle)
+    	    });
+	        this.map.addLayer(markerLayer);
+            selectControl = new OpenLayers.Control.SelectFeature(markerLayer);
+            this.map.addControl(selectControl);
+            selectControl.activate();
+        }
+        
+	    // add popup if the parameters titel or tekst are used
+	    if (titel != null || tekst != null) {
+	    	strOms = "";
+	    	if (titel != null){
+		    	strOms = "<h2>" + titel + "</h2>";
+	    	}
+	    	if (tekst != null){
+		    	strOms = strOms + tekst;
+	    	}
+	    	vctMarkerFeat.attributes.oms = strOms;
+            markerLayer.events.on({
+                'featureselected': onFeatureSelect,
+                'featureunselected': onFeatureUnselect
+            });
+		}
+        //markerLayer.addFeatures([vctMarkerFeat]);
+        //var markerStyle = {externalGraphic: "./markertypes/default.png", graphicWidth: 16, graphicHeight: 16, graphicYOffset: -16, graphicOpacity: 0.7};
+        markerLayer.addFeatures([new OpenLayers.Feature.Vector(pntMarkerGeom, {oms: strOms}, markerStyle)]);
+    }
 }

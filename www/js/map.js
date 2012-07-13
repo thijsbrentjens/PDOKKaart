@@ -124,7 +124,6 @@ function init()
 	// delegate..
 
 	$('#searchResults').delegate('li/a','click', function (evt) {
-		var hash = $("span.hash", this).text();
 		var x = $("span.x", this).text();
 		var y = $("span.y", this).text();
 		var z = $("span.z", this).text();
@@ -143,7 +142,6 @@ function init()
 	
 	
 	$('#searchResults').delegate('li/a','mouseover', function (evt) {
-		var hash = $("span.hash", this).text();
 		var x = $("span.x", this).text();
 		var y = $("span.y", this).text();
 		var z = $("span.z", this).text();
@@ -254,7 +252,6 @@ function handleGeocodeResponse(req, returnCoords){
     var xlslusFormat = new Geozet.Format.XLSLUS();
     var xlslus = xlslusFormat.read(req.responseXML || req.responseText);
     var hits=xlslus[0].numberOfGeocodedAddresses;
-    // alert(hits.length);
     if (hits==0){
         // zero responses
         this.showError(OpenLayers.i18n("noLocationFound"));
@@ -264,7 +261,7 @@ function handleGeocodeResponse(req, returnCoords){
 		// minx,miny,maxx,maxy are used to calcultate a bbox of the geocoding results
 		// initializes these with the max/min values of the extent of the map, so swap the left /right and bottomo/top of the maxExtent
 		// i.e.: the calculate minx will allways be smaller than the right-border of the map;
-		// TODO: use the map's restricted Extent, so request a change to Lucs API
+		// TODO: for production use the map's restricted Extent, so request a change to Lucs API
 		/// For now: just values
 		maxEx = new OpenLayers.Bounds(-285401.92, 22598.08, 595401.92, 903401.92);
 		var minx = maxEx.right;
@@ -286,26 +283,21 @@ function handleGeocodeResponse(req, returnCoords){
             var prov = address.place.CountrySubdivision;
             var adres = '';
             var postcode = '';
-            var hash = "";
             // determine zoom and hash
             var zoom = null;
             if (address.street && address.street.length>0){
                 adres = address.street + ' - ' ;
-                hash += "/straat/"+ encodeURIComponent(address.street);
                 if (address.building){
                     var toevoeging = '';
                     if (address.building.subdivision){
                         toevoeging = address.building.subdivision
                     }
                     adres += address.building.number+toevoeging+' - ';
-                    hash  += "/huisnummer/"+encodeURIComponent(address.building.number);
-                    hash  += "/toevoeging/"+encodeURIComponent(toevoeging);
                 }
                 if(!zoom){zoom='adres'}
             }
             if (address.postalCode){
                 adres += address.postalCode+' - ';
-                hash = "/postcode/"+encodeURIComponent(address.postalCode)+hash;
                 if(!zoom){zoom='postcode'}
             }
             if(plaats){
@@ -321,16 +313,7 @@ function handleGeocodeResponse(req, returnCoords){
                 if(!zoom){zoom='provincie'}
             }
             if(!zoom){zoom='standaard'}
-            // for hash
-            if(plaats){
-                hash = "/plaats/"+encodeURIComponent(plaats)+hash;
-            }
-            if(gemeente){
-                hash = "/gemeente/"+encodeURIComponent(gemeente)+hash;
-            }
-            if(prov){
-                hash = "/provincie/"+encodeURIComponent(prov)+hash;
-            }
+
             if(hits>0){
                 // Thijs: added calculation for bbox
                 // only calulate if a geom is provided
@@ -351,7 +334,7 @@ function handleGeocodeResponse(req, returnCoords){
 					newId = newFt.id;
 					features.push(newFt);
                 }
-				var gazHtml = '<li id="listitem_'+newId.split('.')[2]+'"><a href="#">('+(i+1) + ") " + suggestion+' <span class="hash">'+hash+'</span>'+' <span class="x">'+x+'</span> <span class="y">'+y+'</span> <span class="z">'+z+'</span> <span class="ft_id" id="searchresult_'+newId.split('.')[2]+'">'+newId+'</span></a></li>';
+				var gazHtml = '<li id="listitem_'+newId.split('.')[2]+'"><a href="#">('+(i+1) + ") " + suggestion +' <span class="x">'+x+'</span> <span class="y">'+y+'</span> <span class="z">'+z+'</span> <span class="ft_id" id="searchresult_'+newId.split('.')[2]+'">'+newId+'</span></a></li>';
                 $("ul.geozetSuggestions").append(gazHtml);
 
                 // set (calculated) height for the result div
@@ -373,7 +356,6 @@ function handleGeocodeResponse(req, returnCoords){
                 else 
                 {
                     mapPDOKKaart.setCenter(new OpenLayers.LonLat(x, y), z);
-                    // document.location.hash=hash;
                 }
             }
         }
